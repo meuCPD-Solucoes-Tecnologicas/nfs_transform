@@ -6,7 +6,7 @@ This is a Python program that generates complementary XML files from a given tem
 
 ## Usage
 
-To use this program, run the following command:
+To use this program, run the following command in the folder:
 
 python nf_complementares.py [source_folder] [target_folder] [base_folder]
 
