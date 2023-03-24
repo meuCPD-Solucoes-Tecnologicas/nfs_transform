@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "pynfs"
+version = "0.1.0"
+description = "The package for work with nfs"
+authors = ["Leonardo Bezerra <leosoares.bezerra2017@gmail.com>"]
+license = "GPL"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+xmltodict = "^0.13.0"
+
+
+[tool.poetry.group.dev.dependencies]
+autopep8 = "^2.0.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
