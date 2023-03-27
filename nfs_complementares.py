@@ -88,7 +88,7 @@ def main(argv):
         # 1 - Referencia da complementar na nf original
 
         dict = complemenatarXML.getXMLDict()
-        dict['NFe']['infNFe']['@Id'] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']["NFref"]["refNFe"]
+        complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"] =originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']["@Id"]
         complemenatarXML.setXMLDict(dict)
 
         # 2 - Complemento de ICMS
@@ -152,7 +152,7 @@ def main(argv):
         complemenatarXML.setXMLDict(dict)
         #####################################################################################
         print(complemenatarXML.getXMLDict()["NFe"]["infNFe"]["@Id"])
-        complemenatarXML.saveXML(os.path.join(targetFolder,complemenatarXML.getXMLDict()['NFe']['infNFe']['@Id']+'.xml'))
+        complemenatarXML.saveXML(os.path.join(targetFolder,xmlarqs.split("-")[0]+" - COMPLEMENTAR - "+complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"]+'.xml'))
 
 if __name__ == '__main__':
     main(sys.argv[1:])
