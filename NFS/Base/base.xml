@@ -27,40 +27,40 @@
             </NFref>
         </ide>
         <emit>
-            <CNPJ>46364058000115</CNPJ>
-            <xNome>LUZ LED COMERCIO ONLINE LTDA</xNome>
-            <xFant>LUZ LED DECOR</xFant>
+            <CNPJ></CNPJ>
+            <xNome></xNome>
+            <xFant></xFant>
             <enderEmit>
-                <xLgr>Rua 7</xLgr>
-                <nro>192</nro>
-                <xCpl>Sala 02</xCpl>
-                <xBairro>Zona Central</xBairro>
-                <cMun>3543907</cMun>
-                <xMun>Rio Claro</xMun>
-                <UF>SP</UF>
-                <CEP>13500143</CEP>
-                <cPais>1058</cPais>
-                <xPais>Brasil</xPais>
-                <fone>1935571411</fone>
+                <xLgr></xLgr>
+                <nro></nro>
+                <xCpl></xCpl>
+                <xBairro></xBairro>
+                <cMun></cMun>
+                <xMun></xMun>
+                <UF></UF>
+                <CEP></CEP>
+                <cPais></cPais>
+                <xPais></xPais>
+                <fone></fone>
             </enderEmit>
-            <IE>587462103112</IE>
-            <CRT>3</CRT>
+            <IE></IE>
+            <CRT></CRT>
         </emit>
         <dest>
-            <CPF>02771139030</CPF>
-            <xNome>Henrique Maia Braum</xNome>
+            <CPF></CPF>
+            <xNome></xNome>
             <enderDest>
-                <xLgr>Rua Serafim Vargas</xLgr>
-                <nro>029</nro>
-                <xBairro>Morro do Espelho</xBairro>
-                <cMun>4318705</cMun>
-                <xMun>Sao Leopoldo</xMun>
-                <UF>RS</UF>
-                <CEP>93030210</CEP>
-                <cPais>1058</cPais>
-                <xPais>Brasil</xPais>
+                <xLgr></xLgr>
+                <nro></nro>
+                <xBairro></xBairro>
+                <cMun></cMun>
+                <xMun></xMun>
+                <UF></UF>
+                <CEP></CEP>
+                <cPais></cPais>
+                <xPais></xPais>
             </enderDest>
-            <indIEDest>9</indIEDest>
+            <indIEDest></indIEDest>
         </dest>
         <det nItem="1">
             <prod>

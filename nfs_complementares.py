@@ -72,6 +72,13 @@ def main(argv):
         complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["dhEmi"] = formatted_date
         complemenatarXML.setXMLDict(dict)
 
+        #cNF e cDV da complementar
+
+        dict = complemenatarXML.getXMLDict()
+
+        complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["cNF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['cNF']
+        complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["cDV"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['cDV']
+
         # Complemento de ICMS
         dict = complemenatarXML.getXMLDict()
         #save original value on file
@@ -114,9 +121,11 @@ def main(argv):
         dict = complemenatarXML.getXMLDict()
         try:
             dict['NFe']['infNFe']["total"]["ICMSTot"]["vICMS"] = round(float(complemenatarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2)
+            complemenatarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vICMS"] = round(float(complemenatarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2)
         except Exception as e:
             print(e)
             dict['NFe']['infNFe']["total"]["ICMSTot"]["vICMS"] = round(float(complemenatarXML.getXMLDict()['NFe']['infNFe']["det"][0]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2)
+            complemenatarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vICMS"] = round(float(complemenatarXML.getXMLDict()['NFe']['infNFe']["det"][0]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2)
         complemenatarXML.setXMLDict(dict)
 
         #  InfADIC
@@ -147,6 +156,125 @@ def main(argv):
 
 
         complemenatarXML.setXMLDict(dict)
+
+        #emit 
+
+        """
+        complemantar
+        <emit>
+                        <CNPJ>46364058000115</CNPJ>
+                        <xNome>LUZ LED COMERCIO ONLINE LTDA</xNome>
+                        <xFant>LUZ LED DECOR</xFant>
+                        <enderEmit>
+                                <xLgr>Rua 7</xLgr>
+                                <nro>192</nro>
+                                <xCpl>Sala 02</xCpl>
+                                <xBairro>Zona Central</xBairro>
+                                <cMun>3543907</cMun>
+                                <xMun>Rio Claro</xMun>
+                                <UF>SP</UF>
+                                <CEP>13500143</CEP>
+                                <cPais>1058</cPais>
+                                <xPais>Brasil</xPais>
+                                <fone>1935571411</fone>
+                        </enderEmit>
+                        <IE>587462103112</IE>
+                        <CRT>3</CRT>
+                </emit>
+                
+                original
+                <emit>
+                <CNPJ>46364058000115</CNPJ>
+                <xNome>LUZ LED COMERCIO ONLINE LTDA</xNome>
+                <enderEmit>
+                    <xLgr>Avenida 59</xLgr>
+                    <nro>1513</nro>
+                    <xBairro>Jardim Anhanguera</xBairro>
+                    <cMun>3543907</cMun>
+                    <xMun>Rio Claro</xMun>
+                    <UF>SP</UF>
+                    <CEP>13501560</CEP>
+                    <cPais>1058</cPais>
+                    <xPais>Brasil</xPais>
+                    <fone>001935571411</fone>
+                </enderEmit>
+                <IE>587462103112</IE>
+                <CRT>1</CRT>
+            </emit>
+                """
+        dict = complemenatarXML.getXMLDict()
+        dict['NFe']['infNFe']["emit"]["CNPJ"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['CNPJ']
+        dict['NFe']['infNFe']["emit"]["xNome"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['xNome']
+        dict['NFe']['infNFe']["emit"]["enderEmit"]["xLgr"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['xLgr']
+        dict['NFe']['infNFe']["emit"]["enderEmit"]["nro"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['nro']
+        dict['NFe']['infNFe']["emit"]["enderEmit"]["xBairro"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['xBairro']
+        dict['NFe']['infNFe']["emit"]["enderEmit"]["cMun"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['cMun']
+        dict['NFe']['infNFe']["emit"]["enderEmit"]["xMun"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['xMun']
+        dict['NFe']['infNFe']["emit"]["enderEmit"]["UF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['UF']
+        dict['NFe']['infNFe']["emit"]["enderEmit"]["CEP"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['CEP']
+        dict['NFe']['infNFe']["emit"]["enderEmit"]["cPais"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['cPais']
+        dict['NFe']['infNFe']["emit"]["enderEmit"]["xPais"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['xPais']
+        dict['NFe']['infNFe']["emit"]["enderEmit"]["fone"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['fone']
+        dict['NFe']['infNFe']["emit"]["IE"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['IE']
+        dict['NFe']['infNFe']["emit"]["CRT"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['CRT']
+
+        complemenatarXML.setXMLDict(dict)
+
+        #dest
+        """complementar
+            <dest>
+                        <CPF>02771139030</CPF>
+                        <xNome>Henrique Maia Braum</xNome>
+                        <enderDest>
+                                <xLgr>Rua Serafim Vargas</xLgr>
+                                <nro>029</nro>
+                                <xBairro>Morro do Espelho</xBairro>
+                                <cMun>4318705</cMun>
+                                <xMun>Sao Leopoldo</xMun>
+                                <UF>RS</UF>
+                                <CEP>93030210</CEP>
+                                <cPais>1058</cPais>
+                                <xPais>Brasil</xPais>
+                        </enderDest>
+                        <indIEDest>9</indIEDest>
+                </dest>
+
+            original
+             <dest>
+                <CPF>02771139030</CPF>
+                <xNome>Henrique Maia Braum</xNome>
+                <enderDest>
+                    <xLgr>Rua Serafim Vargas</xLgr>
+                    <nro>29</nro>
+                    <xBairro>Morro do Espelho</xBairro>
+                    <cMun>4318705</cMun>
+                    <xMun>Sao Leopoldo</xMun>
+                    <UF>RS</UF>
+                    <CEP>93030210</CEP>
+                    <cPais>1058</cPais>
+                    <xPais>Brasil</xPais>
+                </enderDest>
+                <indIEDest>9</indIEDest>
+            </dest>
+
+        """
+        dict = complemenatarXML.getXMLDict()
+
+        dict['NFe']['infNFe']["dest"]["CPF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['CPF']
+        dict['NFe']['infNFe']["dest"]["xNome"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['xNome']
+        dict['NFe']['infNFe']["dest"]["enderDest"]["xLgr"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['xLgr']
+        dict['NFe']['infNFe']["dest"]["enderDest"]["nro"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['nro']
+        dict['NFe']['infNFe']["dest"]["enderDest"]["xBairro"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['xBairro']
+        dict['NFe']['infNFe']["dest"]["enderDest"]["cMun"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['cMun']
+        dict['NFe']['infNFe']["dest"]["enderDest"]["xMun"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['xMun']
+        dict['NFe']['infNFe']["dest"]["enderDest"]["UF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['UF']
+        dict['NFe']['infNFe']["dest"]["enderDest"]["CEP"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['CEP']
+        dict['NFe']['infNFe']["dest"]["enderDest"]["cPais"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['cPais']
+        dict['NFe']['infNFe']["dest"]["enderDest"]["xPais"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['xPais']
+        dict['NFe']['infNFe']["dest"]["indIEDest"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['indIEDest']
+
+        complemenatarXML.setXMLDict(dict)
+        
 
         # gerar o id da nota
         dict = complemenatarXML.getXMLDict()
