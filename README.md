@@ -10,6 +10,7 @@ To use this program, run the following command in the folder:
 
 python nf_complementares.py [source_folder] [target_folder] [base_folder]
 
+*The folder have to be the relative path*
 
 - `source_folder`: The folder containing the source files.
 - `target_folder`: The folder where the generated XML files will be saved.
