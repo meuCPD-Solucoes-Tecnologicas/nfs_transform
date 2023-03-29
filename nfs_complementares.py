@@ -216,7 +216,7 @@ def main(argv):
         dict['NFe']['infNFe']["emit"]["enderEmit"]["xPais"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['xPais']
         dict['NFe']['infNFe']["emit"]["enderEmit"]["fone"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['fone']
         dict['NFe']['infNFe']["emit"]["IE"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['IE']
-        dict['NFe']['infNFe']["emit"]["CRT"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['CRT']
+        dict['NFe']['infNFe']["emit"]["CRT"] = 3#originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['CRT']
 
         complemenatarXML.setXMLDict(dict)
 
