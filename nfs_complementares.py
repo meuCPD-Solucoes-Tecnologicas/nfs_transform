@@ -1,49 +1,8 @@
-"""
-    Esse arquivo python tem como objetivo utilizar o pacote pyNFS para
-    realizar a leitura de arquivos XML e modificalos, gerando assim um nota fiscal
-    complementar.
 
-    Teremos como base o arquivo xml de exemplo de nf complementar, que está na pasta NFS/Base
-    sendo assim vamos receber uma nf original e gerar uma nf complementar a partir dela.
-
-    devemos seguir os seguintes passos:
-
-    1 - Referencia da complementar na nf original 
-        <NFref>
-                    <refNFe>[infNFe Id complementar]</refNFe>
-        </NFref>
-        então usar esse id para gerar a nf complementar.
-
-    2 - Complemento de ICMS
-
-        - <prod> é o mesmo para todos
-        - <prod><NCM> é o mesmo para todos
-        - <ICMS00><vBC> esse valor vai ser colocado em:
-            <prod><vprod>
-             <PIS><PISOutr><vBC>
-    
-    3 - Complemento de CONFINS
-        zerar <vBC> ,<pCOFINS>  e <vCOFINS>
-         <COFINS>
-                        <COFINSOutr>
-                            <CST>49</CST>
-                            <vBC>49.90</vBC>
-                            <pCOFINS>0.0000</pCOFINS>
-                            <vCOFINS>0.00</vCOFINS>
-                        </COFINSOutr>
-                    </COFINS>
-
-    4 - <total>
-                <ICMSTot><vICMS> = <vBC> * 4%
-
-    5 - <infAdic><infCpl> mudar dentro da string série , número e data de emissão conforme nf original
-
-    6 - remover <signature> e <infNFeSupl>
-        
-"""
 import os, sys
 from pyNFS import NFS as nfs
 from datetime import datetime
+from pytz import timezone
 def main(argv):
 
 
@@ -81,17 +40,39 @@ def main(argv):
 
 
     print("Transformando Complementares:")
+    nNFE=2708
     for xmlarqs in xmlFiles:
         originalXML = nfs.XMLPY(open(os.path.join(sourceFolder,xmlarqs),'r').read())
         complemenatarXML = nfs.XMLPY(open(os.path.join(baseFOlder,"base.xml"),'r').read())
         #####################################################################################
-        # 1 - Referencia da complementar na nf original
+        # Referencia da complementar na nf original
 
         dict = complemenatarXML.getXMLDict()
-        complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"] =originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']["@Id"]
+        complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"] =str(originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']["@Id"]).replace("NFe","")
+        complemenatarXML.setXMLDict(dict)
+        
+        #nNF da complementar
+        #começa em 2708 com 6 digitos e vai incrementando
+        dict = complemenatarXML.getXMLDict()
+        complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["nNF"] = str(nNFE).zfill(6)
+        nNFE+=1
         complemenatarXML.setXMLDict(dict)
 
-        # 2 - Complemento de ICMS
+        #definir data de emissão da complementar
+        # Definir o fuso horário
+        tz = timezone('America/Sao_Paulo')
+
+        # Obter a data e hora atual no fuso horário especificado
+        now = datetime.now(tz)
+
+        # Formatar a data e hora no formato desejado
+        formatted_date = now.strftime('%Y-%m-%dT%H:%M:%S%z')
+
+        dict = complemenatarXML.getXMLDict()
+        complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["dhEmi"] = formatted_date
+        complemenatarXML.setXMLDict(dict)
+
+        # Complemento de ICMS
         dict = complemenatarXML.getXMLDict()
         #save original value on file
         with open(os.path.join(targetFolder,"originalvalue.py"),'w+') as fd:
@@ -100,34 +81,36 @@ def main(argv):
             #print(originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']['prod'])
             dict['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']['prod']['vProd']
             dict['NFe']['infNFe']["total"]["ICMSTot"]["vBC"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']['prod']['vProd']
+            dict['NFe']['infNFe']["det"]["prod"]["NCM"]=originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']['prod']['NCM']
         except: 
             #print(originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det'][0]['prod'])
             print("VPROD EM LISTA")
             dict['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det'][0]['prod']['vProd']
             dict['NFe']['infNFe']["total"]["ICMSTot"]["vBC"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det'][0]['prod']['vProd']
+            dict['NFe']['infNFe']["det"]["prod"]["NCM"]=originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det'][0]['prod']['NCM']
 
         complemenatarXML.setXMLDict(dict)
 
-        # 3 - Complemento de CONFINS
+        #  Complemento de CONFINS
         dict = complemenatarXML.getXMLDict()
         try:
-            dict['NFe']['infNFe']["det"]["imposto"]["COFINS"]["COFINSOutr"]["vBC"] = 0
-            dict['NFe']['infNFe']["det"]["imposto"]["COFINS"]["COFINSOutr"]["pCOFINS"] = 0
-            dict['NFe']['infNFe']["det"]["imposto"]["COFINS"]["COFINSOutr"]["vCOFINS"] = 0
-            dict['NFe']['infNFe']["det"]["imposto"]["PIS"]["PISOutr"]["vBC"] = 0
-            dict['NFe']['infNFe']["det"]["imposto"]["PIS"]["PISOutr"]["pPIS"] = 0
-            dict['NFe']['infNFe']["det"]["imposto"]["PIS"]["PISOutr"]["vPIS"] = 0
+            dict['NFe']['infNFe']["det"]["imposto"]["COFINS"]["COFINSOutr"]["vBC"] = 0.0
+            dict['NFe']['infNFe']["det"]["imposto"]["COFINS"]["COFINSOutr"]["pCOFINS"] = 0.0
+            dict['NFe']['infNFe']["det"]["imposto"]["COFINS"]["COFINSOutr"]["vCOFINS"] = 0.0
+            dict['NFe']['infNFe']["det"]["imposto"]["PIS"]["PISOutr"]["vBC"] = 0.0
+            dict['NFe']['infNFe']["det"]["imposto"]["PIS"]["PISOutr"]["pPIS"] = 0.0
+            dict['NFe']['infNFe']["det"]["imposto"]["PIS"]["PISOutr"]["vPIS"] = 0.0
         except:
             print("VBC EM LISTA")
-            dict['NFe']['infNFe']["det"][0]["imposto"]["COFINS"]["COFINSOutr"]["vBC"] = 0
-            dict['NFe']['infNFe']["det"][0]["imposto"]["COFINS"]["COFINSOutr"]["pCOFINS"] = 0
-            dict['NFe']['infNFe']["det"][0]["imposto"]["COFINS"]["COFINSOutr"]["vCOFINS"] = 0
-            dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["vBC"] = 0
-            dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["pPIS"] = 0
-            dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["vPIS"] = 0
+            dict['NFe']['infNFe']["det"][0]["imposto"]["COFINS"]["COFINSOutr"]["vBC"] = 0.0
+            dict['NFe']['infNFe']["det"][0]["imposto"]["COFINS"]["COFINSOutr"]["pCOFINS"] = 0.0
+            dict['NFe']['infNFe']["det"][0]["imposto"]["COFINS"]["COFINSOutr"]["vCOFINS"] = 0.0
+            dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["vBC"] = 0.0
+            dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["pPIS"] = 0.0
+            dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["vPIS"] = 0.0
         complemenatarXML.setXMLDict(dict)
 
-        # 5 - ICMS Total
+        # ICMS Total
         dict = complemenatarXML.getXMLDict()
         try:
             dict['NFe']['infNFe']["total"]["ICMSTot"]["vICMS"] = round(float(complemenatarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2)
@@ -136,7 +119,7 @@ def main(argv):
             dict['NFe']['infNFe']["total"]["ICMSTot"]["vICMS"] = round(float(complemenatarXML.getXMLDict()['NFe']['infNFe']["det"][0]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2)
         complemenatarXML.setXMLDict(dict)
 
-        # 6 - InfADIC
+        #  InfADIC
         dict = complemenatarXML.getXMLDict()
 
         valores={'data-emissao': originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['dhEmi'],
@@ -144,12 +127,33 @@ def main(argv):
                  "serie": originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['serie']}
         texto=f"""
         Conforme artigo 182 IV do RICMS, Nota fiscal complementar de ICMS
-                referente:&lt;br /&gt;A NF {valores["No_NF"]} da serie {valores["serie"]} de {datetime.strptime(valores["data-emissao"].split("T")[0].replace("-","/"),"%Y/%m/%d").strftime("%d/%m/%Y")}.
+                referente:&lt;br /&gt;A NF {valores["No_NF"]} da serie {str(valores["serie"]).zfill(2)} de {datetime.strptime(valores["data-emissao"].split("T")[0].replace("-","/"),"%Y/%m/%d").strftime("%d/%m/%Y")}.
         """
         dict['NFe']['infNFe']["infAdic"]["infCpl"] = texto
-
+        dict['NFe']['infNFe']["ide"]["serie"] = valores['serie']
+        dict['NFe']['infNFe']["ide"]["natOp"] = f"Complementar de ICMS (Serie {valores['serie']})"
         
+        if(valores['serie'] == '1'):
+            try:
+                dict['NFe']['infNFe']["det"]["prod"]["CFOP"] = '6108'
+            except:
+                dict['NFe']['infNFe']["det"][0]["prod"]["CFOP"] = '6108'
+        elif(valores['serie'] == '2'):
+            try:
+                dict['NFe']['infNFe']["det"]["prod"]["CFOP"] = '6106'
+            except:
+                dict['NFe']['infNFe']["det"][0]["prod"]["CFOP"] = '6106'
+
+
+
         complemenatarXML.setXMLDict(dict)
+
+        # gerar o id da nota
+        dict = complemenatarXML.getXMLDict()
+        complemenatarXML.generate_NFeID()
+        dict["NFe"]["infNFe"]["@Id"] = complemenatarXML.id
+        complemenatarXML.setXMLDict(dict)
+
         #####################################################################################
         print(complemenatarXML.getXMLDict()["NFe"]["infNFe"]["@Id"])
         complemenatarXML.saveXML(os.path.join(targetFolder,xmlarqs.split("-")[0]+" - COMPLEMENTAR - "+complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"]+'.xml'))

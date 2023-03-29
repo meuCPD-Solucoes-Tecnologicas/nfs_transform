@@ -1,6 +1,7 @@
 #mygnore
 /NFS/Arquivos/*
 /NFS/Originais/*
+/NFS/Complementares/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

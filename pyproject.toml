@@ -9,6 +9,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 xmltodict = "^0.13.0"
+pytz = "^2023.3"
 
 
 [tool.poetry.group.dev.dependencies]
