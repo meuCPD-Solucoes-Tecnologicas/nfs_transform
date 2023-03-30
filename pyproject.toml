@@ -10,6 +10,7 @@ readme = "README.md"
 python = "^3.10"
 xmltodict = "^0.13.0"
 pytz = "^2023.3"
+xsd-validator = "^0.0.3"
 
 
 [tool.poetry.group.dev.dependencies]

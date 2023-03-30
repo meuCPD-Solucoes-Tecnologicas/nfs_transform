@@ -1,4 +1,6 @@
 import xmltodict as xd
+import xsd_validator as xsdV
+import os
 
 class XMLPY:
     xml=""
@@ -228,39 +230,39 @@ class XMLPY:
         cUF, AAMM, CNPJ, mod, serie, nNF, tpEmis, cNF, cDV = "","","","","","","","",""
         #getcUF
 
-        cUF = self.getXMLDict()['NFe']['infNFe']['ide']['cUF']
+        cUF = self.getXMLDict()['nfeProc']['NFe']['infNFe']['ide']['cUF']
 
         #getAAMM
 
-        AAMM = self.getXMLDict()['NFe']['infNFe']['ide']['dhEmi'][2:4] + self.getXMLDict()['NFe']['infNFe']['ide']['dhEmi'][5:7]
+        AAMM = self.getXMLDict()['nfeProc']['NFe']['infNFe']['ide']['dhEmi'][2:4] + self.getXMLDict()['nfeProc']['NFe']['infNFe']['ide']['dhEmi'][5:7]
 
         #getCNPJ
 
-        CNPJ = self.getXMLDict()['NFe']['infNFe']['emit']['CNPJ']
+        CNPJ = self.getXMLDict()['nfeProc']['NFe']['infNFe']['emit']['CNPJ']
 
         #getmod
 
-        mod = self.getXMLDict()['NFe']['infNFe']['ide']['mod']
+        mod = self.getXMLDict()['nfeProc']['NFe']['infNFe']['ide']['mod']
         
         #getserie
 
-        serie = str(self.getXMLDict()['NFe']['infNFe']['ide']['serie']).zfill(3)
+        serie = str(self.getXMLDict()['nfeProc']['NFe']['infNFe']['ide']['serie']).zfill(3)
 
         #getnNF
 
-        nNF = str(self.getXMLDict()['NFe']['infNFe']['ide']['nNF']).zfill(9)
+        nNF = str(self.getXMLDict()['nfeProc']['NFe']['infNFe']['ide']['nNF']).zfill(9)
 
         #gettpEmis
 
-        tpEmis = self.getXMLDict()['NFe']['infNFe']['ide']['tpEmis']
+        tpEmis = self.getXMLDict()['nfeProc']['NFe']['infNFe']['ide']['tpEmis']
 
         #getcNF
 
-        cNF = self.getXMLDict()['NFe']['infNFe']['ide']['cNF']
+        cNF = self.getXMLDict()['nfeProc']['NFe']['infNFe']['ide']['cNF']
 
         #getcDV
 
-        cDV = self.getXMLDict()['NFe']['infNFe']['ide']['cDV']
+        cDV = self.getXMLDict()['nfeProc']['NFe']['infNFe']['ide']['cDV']
 
 
 
@@ -268,4 +270,18 @@ class XMLPY:
         self.id = "NFe" + cUF + AAMM + CNPJ + mod + serie + nNF + tpEmis + cNF + cDV
         pass
 
+    def validate_with_xsd(self,xsd_path,xml_path):
+        #validate xsd_path exists
+        
+        if not os.path.exists(xsd_path):
+            raise Exception("XSD file not found")
+            pass
+        #validate xml_path exists
+        if not os.path.exists(xml_path):
+            raise Exception("XML file not found")
+            pass    
+    
 
+        validator = xsdV.XsdValidator(xsd_path)
+        validator.assert_valid(os.path.relpath(xml_path))
+        pass

@@ -1,6 +1,7 @@
 import unittest
 
 from pyNFS import NFS
+import os
 
 class TestNFS_methods(unittest.TestCase):
 
@@ -38,8 +39,42 @@ class TestNFS_methods(unittest.TestCase):
         xml.generate_NFeID()
         print(xml.id)
         dict = xml.getXMLDict()
-        dict["NFe"]["infNFe"]["@Id"] = xml.id
+        dict["nfeProc"]["NFe"]["infNFe"]["@Id"] = xml.id
         xml.setXMLDict(dict)
         xml.saveXML("tests/results/test3_nfe2_result.xml")
         
         self.assertEqual(xml.id,"NFe35230346364058000115550020000415211184074372")
+
+    def testValidate_with_xsd(self):
+        with open("tests/xml/test4_nfe.xml","r") as fd:
+            xmloriginal = fd.read()
+        xml = NFS.XMLPY(xmloriginal)
+        
+        #validate with folder /tests/xsds
+        xsds = os.listdir("tests/xsds")
+        with open("tests/results/corret_xsd.xml","w+") as fd:
+            fd.write("VALIDATE WITH XSD\n")
+        for xsd in xsds:
+            with open("tests/results/corret_xsd.xml","a") as fd:
+                fd.write("*"+str(xsd)+"* - ")
+            try:
+                xml.validate_with_xsd("tests/xsds/"+xsd,"NFS/Complementares/5  - COMPLEMENTAR - 35220946364058000115550010000001171700960334.xml")
+                with open("tests/results/corret_xsd.xml","a") as fd:
+                    fd.write("SUCCESS \n")
+                with open("tests/results/corret_xsd.xml","w+") as fd:
+                    fd.write("Validated with xsd: "+xsd)
+                validate = True
+                break
+            except Exception as e:
+                validate = False
+                with open("tests/results/corret_xsd.xml","a") as fd:
+                    fd.write("FAILED \n\n ERROR: "+str(e)+"\n\n")
+
+        self.assertEqual(validate,True)
+           
+                
+
+            
+        pass
+        
+        

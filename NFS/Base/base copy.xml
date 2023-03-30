@@ -20,6 +20,7 @@
             <finNFe>2</finNFe>
             <indFinal>1</indFinal>
             <indPres>2</indPres>
+            <indIntermed>0</indIntermed>
             <procEmi>0</procEmi>
             <verProc>Tiny ERP</verProc>
             <NFref>
@@ -29,10 +30,11 @@
         <emit>
             <CNPJ></CNPJ>
             <xNome></xNome>
-            <xFant>LUZ LED DECOR</xFant>
+            <xFant></xFant>
             <enderEmit>
                 <xLgr></xLgr>
                 <nro></nro>
+                <xCpl></xCpl>
                 <xBairro></xBairro>
                 <cMun></cMun>
                 <xMun></xMun>
