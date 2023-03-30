@@ -135,8 +135,7 @@ def main(argv):
                  "No_NF": originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['nNF'],
                  "serie": originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['serie']}
         texto=f"""
-        Conforme artigo 182 IV do RICMS, Nota fiscal complementar de ICMS
-                referente a NF "{valores["No_NF"]}" da serie "{str(valores["serie"]).zfill(2)}" de "{datetime.strptime(valores["data-emissao"].split("T")[0].replace("-","/"),"%Y/%m/%d").strftime("%d/%m/%Y")}".
+        Conforme artigo 182 IV do RICMS, Nota fiscal complementar de ICMS referente a NF "*{valores["No_NF"]}*" da serie "*{str(valores["serie"]).zfill(2)}*" de "*{datetime.strptime(valores["data-emissao"].split("T")[0].replace("-","/"),"%Y/%m/%d").strftime("%d/%m/%Y")}*".
         """
         dict['NFe']['infNFe']["infAdic"]["infCpl"] = texto
         dict['NFe']['infNFe']["ide"]["serie"] = valores['serie']
