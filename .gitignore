@@ -2,7 +2,7 @@
 /NFS/Arquivos/*
 /NFS/Originais/*
 /NFS/Complementares/*
-/NFS/certificados/*
+/NFS/certificados/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -11,6 +11,20 @@ __pycache__/
 
 # C extensions
 *.so
+
+#certs
+*.pfx
+*.pem
+*.crt
+*.cer
+*.key
+*.p12
+*.p7b
+*.p7s
+*.p7r
+*.p7m
+*.p7c
+
 
 # Distribution / packaging
 .Python
