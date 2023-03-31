@@ -11,6 +11,8 @@ python = "^3.10"
 xmltodict = "^0.13.0"
 pytz = "^2023.3"
 xsd-validator = "^0.0.3"
+lxml = "^4.9.2"
+signxml = "^3.1.0"
 
 
 [tool.poetry.group.dev.dependencies]

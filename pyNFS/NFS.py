@@ -1,6 +1,8 @@
 import xmltodict as xd
 import xsd_validator as xsdV
 import os
+from lxml import etree
+import signxml
 
 class XMLPY:
     xml=""
@@ -285,3 +287,39 @@ class XMLPY:
         validator = xsdV.XsdValidator(xsd_path)
         validator.assert_valid(os.path.relpath(xml_path))
         pass
+
+    def sign_procNfe(self,cert_file, key_file):
+        """
+        Sign the xml file with the cert and key files
+
+        Args:
+            cert_file: a file with the certificate
+            key_file: a file with the key
+
+        Returns:
+            _type_: string with the signed xml
+        
+        """
+        #check cert_file exists
+        if not os.path.exists(cert_file):
+            raise Exception("Cert file not found")
+            pass
+        #check key_file exists
+        if not os.path.exists(key_file):
+            raise Exception("Key file not found")
+            pass        
+        
+        cert_file = open(cert_file, 'rb').read()
+        key_file = open(key_file, 'rb').read()
+        
+        root = etree.fromstring(self.xml.encode('utf-8'))
+       
+        signer = signxml.XMLSigner(method=signxml.methods.enveloped, 
+                                   signature_algorithm='rsa-sha1', 
+                                   digest_algorithm='sha1',
+                                   c14n_algorithm='http://www.w3.org/TR/2001/REC-xml-c14n-20010315',
+                                   )
+        #signer = signxml.XMLSigner(method=signxml.methods.enveloped, signature_algorithm='rsa-sha1', digest_algorithm='sha1')
+        signer.namespaces = {None: signxml.namespaces.ds}
+        signed_root = signer.sign(root, key=key_file, cert=cert_file,reference_uri=str(self.id))
+        return etree.tostring(signed_root)

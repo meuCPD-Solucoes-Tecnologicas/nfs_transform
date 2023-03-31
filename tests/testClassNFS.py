@@ -76,5 +76,49 @@ class TestNFS_methods(unittest.TestCase):
 
             
         pass
+
+    def testValidate_with_xsd_nfeProc(self):
+        with open("tests/xml/test4_nfe.xml","r") as fd:
+            xmloriginal = fd.read()
+        xml = NFS.XMLPY(xmloriginal)
         
+        #validate with folder /tests/xsds
+        xsds = os.listdir("tests/xsds")
+        with open("tests/results/corret_xsd.xml","w+") as fd:
+            fd.write("VALIDATE WITH XSD\n")
+       
+        with open("tests/results/corret_xsd.xml","a") as fd:
+            fd.write("*procNFe_v4.00.xsd* - ")
+        try:
+            xml.validate_with_xsd("tests/xsds/procNFe_v4.00.xsd","tests/results/test4_nfe_result_signed.xml")
+            with open("tests/results/corret_xsd.xml","a") as fd:
+                fd.write("SUCCESS \n")
+            with open("tests/results/corret_xsd.xml","w+") as fd:
+                fd.write("Validated with xsd: procNFe_v4.00.xsd")
+            validate = True
+            
+        except Exception as e:
+            validate = False
+            with open("tests/results/corret_xsd.xml","a") as fd:
+                fd.write("FAILED \n\n ERROR: "+str(e)+"\n\n")
+
+        self.assertEqual(validate,True)
+           
+                
+
+            
+        pass
+    
+    def testSign_cert(self):
+        with open("tests/xml/test4_nfe.xml","r") as fd:
+            xmloriginal = fd.read()
+        xml = NFS.XMLPY(xmloriginal)
+        xml.generate_NFeID()
+        xml.setXML(xml.sign_procNfe("./NFS/certificados/certificado.cert","./NFS/certificados/keycert.key").decode("utf-8"))
+        xml.setXML(xml.getXML().replace("</NFe>",""))
+        xml.setXML(xml.getXML().replace("</nfeProc>",""))
+        xml.setXML(xml.getXML()+"</NFe></nfeProc>")
+
+        xml.saveXML("tests/results/test4_nfe_result_signed.xml")
+        pass
         

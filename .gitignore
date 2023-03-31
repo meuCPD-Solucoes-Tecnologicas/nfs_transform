@@ -2,6 +2,7 @@
 /NFS/Arquivos/*
 /NFS/Originais/*
 /NFS/Complementares/*
+/NFS/certificados/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
