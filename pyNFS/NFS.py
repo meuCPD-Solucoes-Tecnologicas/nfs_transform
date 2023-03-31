@@ -3,7 +3,7 @@ import xsd_validator as xsdV
 import os
 from lxml import etree
 import signxml
-
+import pynfe.entidades as nfeent
 class XMLPY:
     xml=""
     xmldict={}
@@ -288,7 +288,7 @@ class XMLPY:
         validator.assert_valid(os.path.relpath(xml_path))
         pass
 
-    def sign_procNfe(self,cert_file, key_file):
+    def sign_procNfe(self,cert_file):
         """
         Sign the xml file with the cert and key files
 
@@ -304,13 +304,15 @@ class XMLPY:
         if not os.path.exists(cert_file):
             raise Exception("Cert file not found")
             pass
-        #check key_file exists
-        if not os.path.exists(key_file):
-            raise Exception("Key file not found")
-            pass        
+        # #check key_file exists
+        # if not os.path.exists(key_file):
+        #     raise Exception("Key file not found")
+        #     pass        
+
+        certificado = nfeent.CertificadoA1(cert_file)
         
-        cert_file = open(cert_file, 'rb').read()
-        key_file = open(key_file, 'rb').read()
+        
+        key_file,cert_file=certificado.separar_arquivo(senha="123456")
         
         root = etree.fromstring(self.xml.encode('utf-8'))
        

@@ -279,7 +279,8 @@ def main(argv):
         complemenatarXML.generate_NFeID()
         dict["nfeProc"]["NFe"]["infNFe"]["@Id"] = complemenatarXML.id
         complemenatarXML.setXMLDict(dict)
-
+        # Assinar o XML
+        complemenatarXML.setXML(complemenatarXML.sign_procNfe("./NFS/certificados/LUZ_LED.p12").decode("utf-8"))
         #####################################################################################
         print(complemenatarXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["@Id"])
         complemenatarXML.saveXML(os.path.join(targetFolder,xmlarqs.split("-")[0]+" - COMPLEMENTAR - "+complemenatarXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"]+'.xml'))

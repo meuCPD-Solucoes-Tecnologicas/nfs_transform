@@ -1,5 +1,5 @@
 VALIDATE WITH XSD
 *procNFe_v4.00.xsd* - FAILED 
 
- ERROR: tests/results/test4_nfe_result_signed.xml: line 206 column 11: cvc-complex-type.2.4.b: The content of element 'nfeProc' is not complete. One of '{"http://www.portalfiscal.inf.br/nfe":protNFe}' is expected.
+ ERROR: tests/results/test4_nfe_result_signed.xml: line 1 column 4062: cvc-complex-type.2.4.b: The content of element 'X509Data' is not complete. One of '{"http://www.w3.org/2000/09/xmldsig#":X509Certificate}' is expected.
 

@@ -114,7 +114,7 @@ class TestNFS_methods(unittest.TestCase):
             xmloriginal = fd.read()
         xml = NFS.XMLPY(xmloriginal)
         xml.generate_NFeID()
-        xml.setXML(xml.sign_procNfe("./NFS/certificados/certificado.cert","./NFS/certificados/keycert.key").decode("utf-8"))
+        xml.setXML(xml.sign_procNfe("./NFS/certificados/LUZ_LED_NOVO.pfx").decode("utf-8"))
         xml.setXML(xml.getXML().replace("</NFe>",""))
         xml.setXML(xml.getXML().replace("</nfeProc>",""))
         xml.setXML(xml.getXML()+"</NFe></nfeProc>")

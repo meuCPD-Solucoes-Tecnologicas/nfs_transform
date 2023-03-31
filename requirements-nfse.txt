@@ -1,0 +1,3 @@
+# Opcional para NFS-e
+suds-jurko
+pyxb==1.2.4
