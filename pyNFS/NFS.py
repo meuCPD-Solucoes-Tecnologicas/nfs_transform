@@ -1,5 +1,10 @@
+from datetime import datetime
+import re
+import requests
 import xmltodict as xd
+from pynfe.entidades.certificado import CertificadoA1
 from pynfe.processamento.assinatura import AssinaturaA1
+from pynfe.utils.flags import NAMESPACE_METODO, NAMESPACE_NFE, NAMESPACE_SOAP, NAMESPACE_XSD, NAMESPACE_XSI, VERSAO_PADRAO
 import xsd_validator as xsdV
 import os
 from lxml import etree
@@ -14,7 +19,7 @@ class XMLPY:
     id = ""
 
     def __init__(self, xml: str):
-        self.xmlBytes=xml
+        self.xmlBytes = xml
         self.xml = xml
         self.xmldict = xd.parse(self.xml)
         pass
@@ -29,7 +34,7 @@ class XMLPY:
 
     def setXML(self, xml: str):
         self.xml = xml
-        self.xmlBytes=xml.encode()
+        self.xmlBytes = xml.encode()
         try:
             self.xmldict = xd.parse(self.xml)
 
@@ -42,7 +47,7 @@ class XMLPY:
     def setXMLDict(self, xmldict: dict):
         self.xmldict = xmldict
         self.xml = xd.unparse(self.xmldict)
-        self.xmlBytes=self.xml.encode()
+        self.xmlBytes = self.xml.encode()
         pass
 
     def parseXML(self):
@@ -278,9 +283,7 @@ class XMLPY:
 
         # getserie
 
-        serie = str(
-            self.getXMLDict()["NFe"]["infNFe"]["ide"]["serie"]
-        ).zfill(3)
+        serie = str(self.getXMLDict()["NFe"]["infNFe"]["ide"]["serie"]).zfill(3)
 
         # getnNF
 
@@ -295,12 +298,14 @@ class XMLPY:
         cNF = self.getXMLDict()["NFe"]["infNFe"]["ide"]["cNF"]
 
         # getcDV and set cDV
-        chave_withou_cDv=str(cUF + AAMM + CNPJ + mod + serie + nNF + tpEmis + cNF)
+        chave_withou_cDv = str(cUF + AAMM + CNPJ + mod + serie + nNF + tpEmis + cNF)
         cDV = self.calcula_cDV(chave_withou_cDv)
         cDV = str(cDV)
-        dict=self.getXMLDict()
-        dict["NFe"]["infNFe"]["ide"]["cDV"]=cDV
-        dict["NFe"]["infNFe"]["@Id"] = "NFe" + cUF + AAMM + CNPJ + mod + serie + nNF + tpEmis + cNF + cDV
+        dict = self.getXMLDict()
+        dict["NFe"]["infNFe"]["ide"]["cDV"] = cDV
+        dict["NFe"]["infNFe"]["@Id"] = (
+            "NFe" + cUF + AAMM + CNPJ + mod + serie + nNF + tpEmis + cNF + cDV
+        )
         self.setXMLDict(dict)
 
         # set id
@@ -322,7 +327,7 @@ class XMLPY:
         validator.assert_valid(os.path.relpath(xml_path))
         pass
 
-    def sign_procNfe(self, cert_file_path: str,senha="123456"):
+    def sign_procNfe(self, cert_file_path: str, senha="123456"):
         """
         Sign the xml file with the cert and key files
 
@@ -334,16 +339,14 @@ class XMLPY:
             _type_: string with the signed xml
 
         """
-        
+
         a1 = AssinaturaA1(cert_file_path, senha)
 
         self.setXML(a1.assinar(self.xml_lxml_etree_obj, True).replace("\n", ""))
 
         self.setXML(self.xml.replace("</NFe>", ""))
         self.setXML(self.xml.replace("</nfeProc>", ""))
-        self.setXML(
-            """<?xml version="1.0" encoding="UTF-8"?>""" + self.xml + "</NFe>"
-        )
+        self.setXML("""<?xml version="1.0" encoding="UTF-8"?>""" + self.xml + "</NFe>")
 
         return self.xml
 
@@ -353,18 +356,78 @@ class XMLPY:
         )
         return self.json
 
-    def enviar_nfe(self,xml_path):
-        #enviar nfe para sefaz
-        
+    def enviar_nfe(self, caminho_nfe_assinada, caminho_do_certificado:str,senha_certificado="123456"):
+        """enviar nfe para sefaz"""
 
-        pass
+        xml = etree.parse(caminho_nfe_assinada)
+        raiz = etree.Element("enviNFe", xmlns=NAMESPACE_NFE, versao=VERSAO_PADRAO)
+        etree.SubElement(raiz, "idLote").text = str(
+            1
+        )  # id_lote)  # numero autoincremental gerado pelo sistema
+        etree.SubElement(raiz, "indSinc").text = str(
+            1
+        )  # ind_sinc)  # 0 para assincrono, 1 para sincrono
+        raiz.append(xml.getroot())
 
-    def calcula_cDV(self,chave: str) -> int:
+        # Monta XML para envio da requisição
+        # xml = _construir_xml_soap('NFeAutorizacao4', raiz)
+        # def _construir_xml_soap(self, metodo, dados, cabecalho=False):
+        metodo = "NFeAutorizacao4"
+        _raiz = etree.Element(
+            "{%s}Envelope" % NAMESPACE_SOAP,
+            nsmap={"xsi": NAMESPACE_XSI, "xsd": NAMESPACE_XSD, "soap": NAMESPACE_SOAP},
+        )
+        body = etree.SubElement(_raiz, "{%s}Body" % NAMESPACE_SOAP)
+        ## distribuição tem um corpo de xml diferente
+        a = etree.SubElement(body, "nfeDadosMsg", xmlns=NAMESPACE_METODO + metodo)
+        a.append(raiz)
+        xml = _raiz
+
+        # _post
+        # def _post(self, url, xml):
+        certificado_a1 = CertificadoA1(caminho_do_certificado)
+        chave, cert = certificado_a1.separar_arquivo(senha_certificado, caminho=True)
+        chave_cert = (cert, chave)
+
+        # url = 'https://''nfe.fazenda.sp.gov.br/ws/nfeautorizacao4.asmx'
+        url = "https://homologacao." "nfe.fazenda.sp.gov.br/ws/nfeautorizacao4.asmx"
+        headers = {
+            "content-type": "application/soap+xml; charset=utf-8;",
+            "Accept": "application/soap+xml; charset=utf-8;",
+        }
+        # Abre a conexão HTTPS
+        try:
+            xml_declaration = '<?xml version="1.0" encoding="UTF-8"?>'
+
+            # limpa xml com caracteres bugados para infNFeSupl em NFC-e
+            xml = re.sub(
+                "<qrCode>(.*?)</qrCode>",
+                lambda x: x.group(0)
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&amp;", ""),
+                etree.tostring(xml, encoding="unicode").replace("\n", ""),
+            )
+            xml = xml_declaration + xml
+
+            # Faz o request com o servidor
+
+            result = requests.post(
+                url, xml, headers=headers, cert=chave_cert, verify=False
+            )
+            nome_result = f'result_autorizacao_sefaz - {datetime.now().strftime("%hh%mm%ss$d") }.xml'
+            open(nome_result, "w").write(f"{result.status_code}\n{result.text}")
+        except requests.exceptions.RequestException as e:
+            raise e
+        finally:
+            certificado_a1.excluir()
+
+    def calcula_cDV(self, chave: str) -> int:
         chave = [int(i) for i in chave]
         multiplicadores = [2, 3, 4, 5, 6, 7, 8, 9]
         soma = 0
         m = 0
-        for i in range(len(chave)-1, -1, -1):
+        for i in range(len(chave) - 1, -1, -1):
             soma += chave[i] * multiplicadores[m]
             m += 1
             if m > 7:
