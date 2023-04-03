@@ -1,4 +1,5 @@
 import xmltodict as xd
+from pynfe.processamento.assinatura import AssinaturaA1
 import xsd_validator as xsdV
 import os
 from lxml import etree
@@ -290,44 +291,20 @@ class XMLPY:
         validator.assert_valid(os.path.relpath(xml_path))
         pass
 
-    def sign_procNfe(self,cert_file):
+    def sign_procNfe(self,cert_file_path:str):
         """
         Sign the xml file with the cert and key files
 
         Args:
-            cert_file: a file with the certificate
+            cert_file_path: o caminho do arquivo do certificado
             key_file: a file with the key
 
         Returns:
             _type_: string with the signed xml
         
         """
-        #check cert_file exists
-        if not os.path.exists(cert_file):
-            raise Exception("Cert file not found")
-            pass
-        # #check key_file exists
-        # if not os.path.exists(key_file):
-        #     raise Exception("Key file not found")
-        #     pass        
-
-        certificado = nfeent.CertificadoA1(cert_file)
-        
-        
-        key_file,cert_file=certificado.separar_arquivo(senha="123456")
-        
-        root = etree.fromstring(self.xml.encode('utf-8'))
-       
-        signer = signxml.XMLSigner(method=signxml.methods.enveloped, 
-                                   signature_algorithm='rsa-sha1', 
-                                   digest_algorithm='sha1',
-                                   c14n_algorithm='http://www.w3.org/TR/2001/REC-xml-c14n-20010315',
-                                   )
-        #signer = signxml.XMLSigner(method=signxml.methods.enveloped, signature_algorithm='rsa-sha1', digest_algorithm='sha1')
-        signer.namespaces = {None: signxml.namespaces.ds}
-        signed_root = signer.sign(root, key=key_file, cert=cert_file,reference_uri=str(self.id))
-        
-        self.setXML(etree.tostring(signed_root).decode('utf-8'))
+        a1 = AssinaturaA1(cert_file_path, '1234')
+        self.setXML(a1.assinar(self.getXML()))
 
         self.setXML(self.xml.replace("</NFe>"," "))
         self.setXML(self.xml.replace("</nfeProc>"," "))
