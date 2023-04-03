@@ -357,7 +357,7 @@ class XMLPY:
         return self.json
 
     def enviar_nfe(self, caminho_nfe_assinada, caminho_do_certificado:str,senha_certificado="123456"):
-        """enviar nfe para sefaz"""
+        """enviar nfe para sefaz para autorização"""
 
         xml = etree.parse(caminho_nfe_assinada)
         raiz = etree.Element("enviNFe", xmlns=NAMESPACE_NFE, versao=VERSAO_PADRAO)
