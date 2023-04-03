@@ -304,7 +304,7 @@ class XMLPY:
         
         """
         a1 = AssinaturaA1(cert_file_path, '1234')
-        self.setXML(a1.assinar(self.getXML()))
+        self.setXML(a1.assinar(self.xml))
 
         self.setXML(self.xml.replace("</NFe>"," "))
         self.setXML(self.xml.replace("</nfeProc>"," "))
