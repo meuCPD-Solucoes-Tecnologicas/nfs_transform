@@ -1,5 +1,93 @@
 VALIDATE WITH XSD
+*procInutNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*consCad_v2.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*retConsReciNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*inutNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*leiauteNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*consStatServ_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*retInutNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*retEnviNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
 *procNFe_v4.00.xsd* - FAILED 
 
- ERROR: tests/results/test4_nfe_result_signed.xml: line 1 column 4062: cvc-complex-type.2.4.b: The content of element 'X509Data' is not complete. One of '{"http://www.w3.org/2000/09/xmldsig#":X509Certificate}' is expected.
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*leiauteInutNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*leiauteConsultaCadastro_v2.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*leiauteConsSitNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*xmldsig-core-schema_v1.01.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*retConsSitNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*nfe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*enviNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 4 column 71: cvc-complex-type.2.4.a: Invalid content was found starting with element '{"http://www.portalfiscal.inf.br/nfe":nfeProc}'. One of '{"http://www.portalfiscal.inf.br/nfe":NFe}' is expected.
+
+*consSitNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*tiposBasico_v1.03.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*retConsCad_v2.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*tiposBasico_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*retConsStatServ_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*leiauteConsStatServ_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
+
+*consReciNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 67: cvc-elt.1.a: Cannot find the declaration of element 'enviNFe'.
 

@@ -46,7 +46,7 @@ class TestNFS_methods(unittest.TestCase):
         self.assertEqual(xml.id,"NFe35230346364058000115550020000415211184074372")
 
     def testValidate_with_xsd(self):
-        with open("tests/xml/test4_nfe.xml","r") as fd:
+        with open("tests/xml/nota_gerada.xml","r") as fd:
             xmloriginal = fd.read()
         xml = NFS.XMLPY(xmloriginal)
         
@@ -58,7 +58,7 @@ class TestNFS_methods(unittest.TestCase):
             with open("tests/results/corret_xsd.xml","a") as fd:
                 fd.write("*"+str(xsd)+"* - ")
             try:
-                xml.validate_with_xsd("tests/xsds/"+xsd,"NFS/Complementares/5  - COMPLEMENTAR - 35220946364058000115550010000001171700960334.xml")
+                xml.validate_with_xsd("tests/xsds/"+xsd,"tests/xml/nota_gerada.xml")
                 with open("tests/results/corret_xsd.xml","a") as fd:
                     fd.write("SUCCESS \n")
                 with open("tests/results/corret_xsd.xml","w+") as fd:
@@ -78,7 +78,7 @@ class TestNFS_methods(unittest.TestCase):
         pass
 
     def testValidate_with_xsd_nfeProc(self):
-        with open("tests/xml/test4_nfe.xml","r") as fd:
+        with open("tests/xml/nota_gerada.xml","r") as fd:
             xmloriginal = fd.read()
         xml = NFS.XMLPY(xmloriginal)
         
@@ -90,7 +90,7 @@ class TestNFS_methods(unittest.TestCase):
         with open("tests/results/corret_xsd.xml","a") as fd:
             fd.write("*procNFe_v4.00.xsd* - ")
         try:
-            xml.validate_with_xsd("tests/xsds/procNFe_v4.00.xsd","tests/results/test4_nfe_result_signed.xml")
+            xml.validate_with_xsd("tests/xsds/procNFe_v4.00.xsd","tests/xml/nota_gerada.xml")
             with open("tests/results/corret_xsd.xml","a") as fd:
                 fd.write("SUCCESS \n")
             with open("tests/results/corret_xsd.xml","w+") as fd:
@@ -121,4 +121,17 @@ class TestNFS_methods(unittest.TestCase):
 
         xml.saveXML("tests/results/test4_nfe_result_signed.xml")
         pass
+    
+    def testGet_Json_of_XML(self):
         
+        with open("tests/xml/test.xml","r") as fd:
+            xmloriginal = open("./NFS/Complementares/5  - COMPLEMENTAR - 35220946364058000115550010000001171700960334.xml","r").read()
+            xml = NFS.XMLPY(xmloriginal)
+            with(open("tests/results/test_get_json_of_xml.json","w+")) as fd:
+                fd.write(xml.get_Json())
+
+    
+
+
+
+        ...

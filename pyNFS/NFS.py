@@ -4,6 +4,7 @@ import os
 from lxml import etree
 import signxml
 import pynfe.entidades as nfeent
+import json
 
 class XMLPY:
     xml=""
@@ -325,4 +326,17 @@ class XMLPY:
         #signer = signxml.XMLSigner(method=signxml.methods.enveloped, signature_algorithm='rsa-sha1', digest_algorithm='sha1')
         signer.namespaces = {None: signxml.namespaces.ds}
         signed_root = signer.sign(root, key=key_file, cert=cert_file,reference_uri=str(self.id))
-        return etree.tostring(signed_root)
+        
+        self.setXML(etree.tostring(signed_root).decode('utf-8'))
+
+        self.setXML(self.xml.replace("</NFe>"," "))
+        self.setXML(self.xml.replace("</nfeProc>"," "))
+        self.setXML("""<?xml version="1.0" encoding="UTF-8"?>"""+self.xml+"</NFe></nfeProc>")
+        
+        
+        return self.xml
+
+    def get_Json(self):
+
+        self.json = json.dumps(self.getXMLDict(), indent=4, sort_keys=True, ensure_ascii=False)
+        return self.json
