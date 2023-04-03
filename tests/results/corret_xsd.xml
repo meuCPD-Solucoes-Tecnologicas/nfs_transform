@@ -1,5 +1,1 @@
-VALIDATE WITH XSD
-*procNFe_v4.00.xsd* - FAILED 
-
- ERROR: tests/xml/nota_gerada.xml: line 1 column 87: cvc-elt.1.a: Cannot find the declaration of element 'NFe'.
-
+Validated with xsd: nfe_v4.00.xsd

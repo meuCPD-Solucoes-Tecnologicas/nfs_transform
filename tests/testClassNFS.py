@@ -42,8 +42,10 @@ class TestNFS_methods(unittest.TestCase):
         dict["NFe"]["infNFe"]["@Id"] = xml.id
         xml.setXMLDict(dict)
         xml.saveXML("tests/results/test3_nfe2_result.xml")
+        cDV = xml.getXMLDict()["NFe"]["infNFe"]["ide"]["cDV"]
+
         
-        self.assertEqual(xml.id,"NFe35230346364058000115550020000415211184074372")
+        self.assertEqual(xml.id,"NFe352304463640580001155500100000270917009603388"+str(cDV))
 
     def testValidate_with_xsd(self):
         with open("tests/xml/nota_gerada.xml","r") as fd:
@@ -88,13 +90,13 @@ class TestNFS_methods(unittest.TestCase):
             fd.write("VALIDATE WITH XSD\n")
        
         with open("tests/results/corret_xsd.xml","a") as fd:
-            fd.write("*procNFe_v4.00.xsd* - ")
+            fd.write("*nfe_v4.00.xsd* - ")
         try:
-            xml.validate_with_xsd("tests/xsds/procNFe_v4.00.xsd","tests/xml/nota_gerada.xml")
+            xml.validate_with_xsd("tests/xsds/nfe_v4.00.xsd","tests/xml/nota_gerada.xml")
             with open("tests/results/corret_xsd.xml","a") as fd:
                 fd.write("SUCCESS \n")
             with open("tests/results/corret_xsd.xml","w+") as fd:
-                fd.write("Validated with xsd: procNFe_v4.00.xsd")
+                fd.write("Validated with xsd: nfe_v4.00.xsd")
             validate = True
             
         except Exception as e:
@@ -112,11 +114,11 @@ class TestNFS_methods(unittest.TestCase):
     def testSign_cert(self):
 
         
-        with open("tests/xml/test4_nfe.xml","r") as fd:
+        with open("tests/xml/nota_gerada.xml","r") as fd:
             xmloriginal = fd.read()
         xml = NFS.XMLPY(xmloriginal)
         xml.generate_NFeID()
-        xml.setXML(xml.sign_procNfe("./NFS/certificados/LUZ_LED_NOVO.pfx").decode("utf-8"))
+        xml.setXML(xml.sign_procNfe("./NFS/certificados/LUZ_LED_NOVO.pfx"))
         xml.setXML(xml.getXML().replace("</NFe>",""))
         xml.setXML(xml.getXML().replace("</nfeProc>",""))
         xml.setXML(xml.getXML()+"</NFe></nfeProc>")
@@ -126,8 +128,8 @@ class TestNFS_methods(unittest.TestCase):
     
     def testGet_Json_of_XML(self):
         
-        with open("tests/xml/test.xml","r") as fd:
-            xmloriginal = open("./NFS/Complementares/5  - COMPLEMENTAR - 35220946364058000115550010000001171700960334.xml","r").read()
+        with open("tests/xml/nota_gerada.xml","r") as fd:
+            xmloriginal = fd.read()
             xml = NFS.XMLPY(xmloriginal)
             with(open("tests/results/test_get_json_of_xml.json","w+")) as fd:
                 fd.write(xml.get_Json())
