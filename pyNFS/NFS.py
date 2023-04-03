@@ -17,7 +17,7 @@ class XMLPY:
         pass
     
     @property
-    def xml(self):
+    def xmlParse(self):
         return etree.tostring(self.xml)
 
     def getXML(self):
