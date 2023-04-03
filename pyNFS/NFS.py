@@ -303,11 +303,11 @@ class XMLPY:
             _type_: string with the signed xml
         
         """
-        a1 = AssinaturaA1(cert_file_path, '1234')
+        a1 = AssinaturaA1(cert_file_path, '123456')
         self.setXML(a1.assinar(self.xml))
 
-        self.setXML(self.xml.replace("</NFe>"," "))
-        self.setXML(self.xml.replace("</nfeProc>"," "))
+        self.setXML(self.xml.replace("</NFe>",""))
+        self.setXML(self.xml.replace("</nfeProc>",""))
         self.setXML("""<?xml version="1.0" encoding="UTF-8"?>"""+self.xml+"</NFe></nfeProc>")
         
         
