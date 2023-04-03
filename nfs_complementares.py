@@ -43,7 +43,7 @@ def main(argv):
     nNFE=2708
     for xmlarqs in xmlFiles:
         originalXML = nfs.XMLPY(open(os.path.join(sourceFolder,xmlarqs),'r').read())
-        complemenatarXML = nfs.XMLPY(open(os.path.join(baseFOlder,"base.xml"),'r').read())
+        complemenatarXML = nfs.XMLPY(open(os.path.join(baseFOlder,"base.xml"),'rb').read())
         #####################################################################################
         # Referencia da complementar na nf original
 
@@ -281,9 +281,19 @@ def main(argv):
         complemenatarXML.setXMLDict(dict)
         # Assinar o XML
         complemenatarXML.setXML(complemenatarXML.sign_procNfe("./NFS/certificados/LUZ_LED.p12"))
+
+       
         #####################################################################################
         print(complemenatarXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["@Id"])
-        complemenatarXML.saveXML(os.path.join(targetFolder,xmlarqs.split("-")[0]+" - COMPLEMENTAR - "+complemenatarXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"]+'.xml'))
-
+        arqname = os.path.join(targetFolder,xmlarqs.split("-")[0].replace(" ","")+"-COMPLEMENTAR-"+complemenatarXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"]+'.xml')
+        complemenatarXML.saveXML(arqname)
+         #validar o xml
+        try:
+           
+            complemenatarXML.validate_with_xsd(os.path.relpath(arqname), "tests/xsds/procNFe_v4.00.xsd")
+            print(str(arqname)+"- Success")
+        except Exception as e:
+            print(str(arqname)+"- ERRO NA VALIDACAO: "+str(e))
+            
 if __name__ == '__main__':
     main(sys.argv[1:])

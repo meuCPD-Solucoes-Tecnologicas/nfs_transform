@@ -14,6 +14,7 @@ class XMLPY:
     id = ""
 
     def __init__(self, xml: str):
+        self.xmlBytes=xml
         self.xml = xml
         self.xmldict = xd.parse(self.xml)
         pass
@@ -21,13 +22,19 @@ class XMLPY:
     @property
     def xml_lxml_etree_obj(self):
         """retorna o xml como objeto lxml.etree"""
-        return etree.fromstring(self.xml)
+        return etree.fromstring(self.xmlBytes)
 
     def getXML(self):
         return self.xml
 
     def setXML(self, xml: str):
         self.xml = xml
+        self.xmlBytes=xml.encode()
+        try:
+            self.xmldict = xd.parse(self.xml)
+
+        except:
+            pass
 
     def getXMLDict(self):
         return self.xmldict
@@ -35,6 +42,7 @@ class XMLPY:
     def setXMLDict(self, xmldict: dict):
         self.xmldict = xmldict
         self.xml = xd.unparse(self.xmldict)
+        self.xmlBytes=self.xml.encode()
         pass
 
     def parseXML(self):
@@ -323,7 +331,7 @@ class XMLPY:
         """
         a1 = AssinaturaA1(cert_file_path, "123456")
 
-        self.setXML(a1.assinar(self.xml_lxml_etree_obj, True))
+        self.setXML(a1.assinar(self.xml_lxml_etree_obj, True).replace("\n", ""))
 
         self.setXML(self.xml.replace("</NFe>", ""))
         self.setXML(self.xml.replace("</nfeProc>", ""))

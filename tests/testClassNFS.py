@@ -6,7 +6,7 @@ import os
 class TestNFS_methods(unittest.TestCase):
 
     def testImport_xml_from_folder(self):
-        with open("tests/xml/test.xml","r") as fd:
+        with open("tests/xml/test.xml","rb") as fd:
             xmloriginal = fd.read()
         xml = NFS.XMLPY(xmloriginal)
         self.assertEqual(xml.getXML(),xmloriginal)
@@ -110,6 +110,8 @@ class TestNFS_methods(unittest.TestCase):
         pass
     
     def testSign_cert(self):
+
+        
         with open("tests/xml/test4_nfe.xml","r") as fd:
             xmloriginal = fd.read()
         xml = NFS.XMLPY(xmloriginal)
