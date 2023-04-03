@@ -33,13 +33,13 @@ class TestNFS_methods(unittest.TestCase):
         self.assertEqual(xml2.getXMLDict(),{'myxml': {'hello': 'world2'}})
 
     def testGenerate_xml_id(self):
-        with open("tests/xml/test3_nfe.xml","r") as fd:
+        with open("tests/xml/nota_gerada.xml","r") as fd:
             xmloriginal = fd.read()
         xml = NFS.XMLPY(xmloriginal)
         xml.generate_NFeID()
         print(xml.id)
         dict = xml.getXMLDict()
-        dict["nfeProc"]["NFe"]["infNFe"]["@Id"] = xml.id
+        dict["NFe"]["infNFe"]["@Id"] = xml.id
         xml.setXMLDict(dict)
         xml.saveXML("tests/results/test3_nfe2_result.xml")
         

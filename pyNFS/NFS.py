@@ -294,9 +294,14 @@ class XMLPY:
 
         cNF = self.getXMLDict()["NFe"]["infNFe"]["ide"]["cNF"]
 
-        # getcDV
-
-        cDV = self.getXMLDict()["NFe"]["infNFe"]["ide"]["cDV"]
+        # getcDV and set cDV
+        chave_withou_cDv=str(cUF + AAMM + CNPJ + mod + serie + nNF + tpEmis + cNF)
+        cDV = self.calcula_cDV(chave_withou_cDv)
+        cDV = str(cDV)
+        dict=self.getXMLDict()
+        dict["NFe"]["infNFe"]["ide"]["cDV"]=cDV
+        dict["NFe"]["infNFe"]["@Id"] = "NFe" + cUF + AAMM + CNPJ + mod + serie + nNF + tpEmis + cNF + cDV
+        self.setXMLDict(dict)
 
         # set id
         self.id = "NFe" + cUF + AAMM + CNPJ + mod + serie + nNF + tpEmis + cNF + cDV
@@ -352,3 +357,20 @@ class XMLPY:
         
 
         pass
+
+    def calcula_cDV(self,chave: str) -> int:
+        chave = [int(i) for i in chave]
+        multiplicadores = [2, 3, 4, 5, 6, 7, 8, 9]
+        soma = 0
+        m = 0
+        for i in range(len(chave)-1, -1, -1):
+            soma += chave[i] * multiplicadores[m]
+            m += 1
+            if m > 7:
+                m = 0
+        resto = soma % 11
+        if resto == 0 or resto == 1:
+            cDV = 0
+        else:
+            cDV = 11 - resto
+        return cDV

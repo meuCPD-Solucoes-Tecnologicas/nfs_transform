@@ -10,7 +10,7 @@
             <nNF>41521</nNF>
             <dhEmi>2023-03-21T16:19:42-03:00</dhEmi>
             <tpNF>1</tpNF>
-            <idDest>1</idDest>
+            <idDest>2</idDest>
             <cMunFG>3543907</cMunFG>
             <tpImp>1</tpImp>
             <tpEmis>1</tpEmis>
@@ -19,6 +19,7 @@
             <finNFe>2</finNFe>
             <indFinal>1</indFinal>
             <indPres>2</indPres>
+            <indIntermed>0</indIntermed>
             <procEmi>0</procEmi>
             <verProc>Tiny ERP</verProc>
             <NFref>
