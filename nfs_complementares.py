@@ -290,7 +290,7 @@ def main(argv):
          #validar o xml
         try:
            
-            complemenatarXML.validate_with_xsd(os.path.relpath(arqname), "tests/xsds/procNFe_v4.00.xsd")
+            complemenatarXML.validate_with_xsd(os.path.relpath("./tests/xsds/procNFe_v4.00.xsd"),os.path.relpath(arqname))
             print(str(arqname)+"- Success")
         except Exception as e:
             print(str(arqname)+"- ERRO NA VALIDACAO: "+str(e))
