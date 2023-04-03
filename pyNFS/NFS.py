@@ -16,6 +16,10 @@ class XMLPY:
         self.xmldict = xd.parse(self.xml)
         pass
     
+    @property
+    def xml(self):
+        return etree.tostring(self.xml)
+
     def getXML(self):
         return self.xml
     
