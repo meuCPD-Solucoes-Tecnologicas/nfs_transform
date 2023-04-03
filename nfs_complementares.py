@@ -280,7 +280,7 @@ def main(argv):
         dict["NFe"]["infNFe"]["@Id"] = complemenatarXML.id
         complemenatarXML.setXMLDict(dict)
         # Assinar o XML
-        complemenatarXML.setXML(complemenatarXML.sign_procNfe("./NFS/certificados/LUZ_LED.p12"))
+        complemenatarXML.setXML(complemenatarXML.sign_procNfe("./NFS/certificados/LUZ_LED_NOVO.pfx","123456"))
 
        
         #####################################################################################

@@ -322,7 +322,7 @@ class XMLPY:
         validator.assert_valid(os.path.relpath(xml_path))
         pass
 
-    def sign_procNfe(self, cert_file_path: str):
+    def sign_procNfe(self, cert_file_path: str,senha="123456"):
         """
         Sign the xml file with the cert and key files
 
@@ -334,7 +334,8 @@ class XMLPY:
             _type_: string with the signed xml
 
         """
-        a1 = AssinaturaA1(cert_file_path, "123456")
+        
+        a1 = AssinaturaA1(cert_file_path, senha)
 
         self.setXML(a1.assinar(self.xml_lxml_etree_obj, True).replace("\n", ""))
 
