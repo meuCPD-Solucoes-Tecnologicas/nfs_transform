@@ -4,6 +4,7 @@ import os
 from lxml import etree
 import signxml
 import pynfe.entidades as nfeent
+
 class XMLPY:
     xml=""
     xmldict={}
