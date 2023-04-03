@@ -259,44 +259,44 @@ class XMLPY:
         )
         # getcUF
 
-        cUF = self.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["ide"]["cUF"]
+        cUF = self.getXMLDict()["NFe"]["infNFe"]["ide"]["cUF"]
 
         # getAAMM
 
         AAMM = (
-            self.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["ide"]["dhEmi"][2:4]
-            + self.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["ide"]["dhEmi"][5:7]
+            self.getXMLDict()["NFe"]["infNFe"]["ide"]["dhEmi"][2:4]
+            + self.getXMLDict()["NFe"]["infNFe"]["ide"]["dhEmi"][5:7]
         )
 
         # getCNPJ
 
-        CNPJ = self.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["emit"]["CNPJ"]
+        CNPJ = self.getXMLDict()["NFe"]["infNFe"]["emit"]["CNPJ"]
 
         # getmod
 
-        mod = self.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["ide"]["mod"]
+        mod = self.getXMLDict()["NFe"]["infNFe"]["ide"]["mod"]
 
         # getserie
 
         serie = str(
-            self.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["ide"]["serie"]
+            self.getXMLDict()["NFe"]["infNFe"]["ide"]["serie"]
         ).zfill(3)
 
         # getnNF
 
-        nNF = str(self.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["ide"]["nNF"]).zfill(9)
+        nNF = str(self.getXMLDict()["NFe"]["infNFe"]["ide"]["nNF"]).zfill(9)
 
         # gettpEmis
 
-        tpEmis = self.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["ide"]["tpEmis"]
+        tpEmis = self.getXMLDict()["NFe"]["infNFe"]["ide"]["tpEmis"]
 
         # getcNF
 
-        cNF = self.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["ide"]["cNF"]
+        cNF = self.getXMLDict()["NFe"]["infNFe"]["ide"]["cNF"]
 
         # getcDV
 
-        cDV = self.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["ide"]["cDV"]
+        cDV = self.getXMLDict()["NFe"]["infNFe"]["ide"]["cDV"]
 
         # set id
         self.id = "NFe" + cUF + AAMM + CNPJ + mod + serie + nNF + tpEmis + cNF + cDV
@@ -336,7 +336,7 @@ class XMLPY:
         self.setXML(self.xml.replace("</NFe>", ""))
         self.setXML(self.xml.replace("</nfeProc>", ""))
         self.setXML(
-            """<?xml version="1.0" encoding="UTF-8"?>""" + self.xml + "</NFe></nfeProc>"
+            """<?xml version="1.0" encoding="UTF-8"?>""" + self.xml + "</NFe>"
         )
 
         return self.xml
@@ -346,3 +346,9 @@ class XMLPY:
             self.getXMLDict(), indent=4, sort_keys=True, ensure_ascii=False
         )
         return self.json
+
+    def enviar_nfe(self,xml_path):
+        #enviar nfe para sefaz
+        
+
+        pass

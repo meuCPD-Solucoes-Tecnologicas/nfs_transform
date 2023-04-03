@@ -1,5 +1,1 @@
-VALIDATE WITH XSD
-*procNFe_v4.00.xsd* - FAILED 
-
- ERROR: tests/xml/nota_gerada.xml: line 188 column 11: cvc-complex-type.2.4.b: The content of element 'nfeProc' is not complete. One of '{"http://www.portalfiscal.inf.br/nfe":protNFe}' is expected.
-
+Validated with xsd: nfe_v4.00.xsd
