@@ -11,4 +11,40 @@ VALIDATE WITH XSD
 
  ERROR: tests/xml/nota_gerada.xml: line 1 column 87: cvc-elt.1.a: Cannot find the declaration of element 'NFe'.
 
-*inutNFe_v4.00.xsd* - 
+*inutNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 87: cvc-elt.1.a: Cannot find the declaration of element 'NFe'.
+
+*leiauteNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 87: cvc-elt.1.a: Cannot find the declaration of element 'NFe'.
+
+*consStatServ_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 87: cvc-elt.1.a: Cannot find the declaration of element 'NFe'.
+
+*retInutNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 87: cvc-elt.1.a: Cannot find the declaration of element 'NFe'.
+
+*retEnviNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 87: cvc-elt.1.a: Cannot find the declaration of element 'NFe'.
+
+*procNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 87: cvc-elt.1.a: Cannot find the declaration of element 'NFe'.
+
+*leiauteInutNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 87: cvc-elt.1.a: Cannot find the declaration of element 'NFe'.
+
+*leiauteConsultaCadastro_v2.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 87: cvc-elt.1.a: Cannot find the declaration of element 'NFe'.
+
+*leiauteConsSitNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 87: cvc-elt.1.a: Cannot find the declaration of element 'NFe'.
+
+*xmldsig-core-schema_v1.01.xsd* - 
