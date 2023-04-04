@@ -47,4 +47,12 @@ VALIDATE WITH XSD
 
  ERROR: tests/xml/nota_gerada.xml: line 1 column 87: cvc-elt.1.a: Cannot find the declaration of element 'NFe'.
 
-*xmldsig-core-schema_v1.01.xsd* - 
+*xmldsig-core-schema_v1.01.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 87: cvc-elt.1.a: Cannot find the declaration of element 'NFe'.
+
+*retConsSitNFe_v4.00.xsd* - FAILED 
+
+ ERROR: tests/xml/nota_gerada.xml: line 1 column 87: cvc-elt.1.a: Cannot find the declaration of element 'NFe'.
+
+*nfe_v4.00.xsd* - 
