@@ -4,6 +4,7 @@ import requests
 import xmltodict as xd
 from pynfe.entidades.certificado import CertificadoA1
 from pynfe.processamento.assinatura import AssinaturaA1
+from pynfe.processamento.comunicacao import ComunicacaoSefaz
 from pynfe.utils.flags import NAMESPACE_METODO, NAMESPACE_NFE, NAMESPACE_SOAP, NAMESPACE_XSD, NAMESPACE_XSI, VERSAO_PADRAO
 import xsd_validator as xsdV
 import os
@@ -422,6 +423,36 @@ class XMLPY:
         finally:
             certificado_a1.excluir()
 
+    def consultar_nfe(self,numero_nfe:str, salvar_resultado_em_arquivo:bool|str,caminho_do_certificado:str,senha_certificado="123456",
+                      
+                      ):
+        """
+            se salvar_resultado_em_arquivo for True ou uma string, salva o resultado em arquivo antes de retornar
+                se for uma string, salvará no caminho dado pela string
+                caso contrário num caminho padrão
+        """
+
+
+        # 351011029384115
+        con = ComunicacaoSefaz(
+            uf="SP",
+            homologacao=True,
+            certificado=caminho_do_certificado,
+            certificado_senha=senha_certificado,
+        )
+
+        result = con.consulta_recibo(
+            modelo="nfe",
+            numero=numero_nfe,
+        )
+
+        if (salvar_resultado_em_arquivo):
+            caminho_padrão = f'result_consulta - {datetime.now().strftime("%hh%mm%ss-$d") }.xml'
+            caminho  = salvar_resultado_em_arquivo if isinstance(salvar_resultado_em_arquivo, str)  else caminho_padrão
+            open(caminho,'w').write(result.text)
+        return result
+
+    
     def calcula_cDV(self, chave: str) -> int:
         chave = [int(i) for i in chave]
         multiplicadores = [2, 3, 4, 5, 6, 7, 8, 9]
