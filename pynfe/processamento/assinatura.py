@@ -28,6 +28,8 @@ class AssinaturaA1(Assinatura):
 
     def __init__(self, certificado, senha):
         self.key, self.cert = CertificadoA1(certificado).separar_arquivo(senha)
+        print(CertificadoA1(certificado).separar_arquivo(senha,True))
+
 
     def assinar(self, xml, retorna_string=False):
         # busca tag que tem id(reference_uri), logo nao importa se tem namespace

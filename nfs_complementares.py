@@ -135,7 +135,7 @@ def main(argv):
         valores={'data-emissao': originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['dhEmi'],
                  "No_NF": originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['nNF'],
                  "serie": originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['serie']}
-        texto=f"""Conforme artigo 182 IV do RICMS, Nota fiscal complementar de ICMS referente a NF "*{valores["No_NF"]}*" da serie "*{str(valores["serie"]).zfill(2)}*" de "*{datetime.strptime(valores["data-emissao"].split("T")[0].replace("-","/"),"%Y/%m/%d").strftime("%d/%m/%Y")}*"."""
+        texto=f"""Conforme artigo 182 IV do RICMS, Nota fiscal complementar de ICMS referente a NF {valores["No_NF"]} da serie {str(valores["serie"]).zfill(2)} de {datetime.strptime(valores["data-emissao"].split("T")[0].replace("-","/"),"%Y/%m/%d").strftime("%d/%m/%Y")}."""
         dict['NFe']['infNFe']["infAdic"]["infCpl"] = texto
         dict['NFe']['infNFe']["ide"]["serie"] = valores['serie']
         dict['NFe']['infNFe']["ide"]["natOp"] = f"Complementar de ICMS (Serie {valores['serie']})"
@@ -280,7 +280,7 @@ def main(argv):
         dict["NFe"]["infNFe"]["@Id"] = complemenatarXML.id
         complemenatarXML.setXMLDict(dict)
         # Assinar o XML
-        complemenatarXML.setXML(complemenatarXML.sign_procNfe("./NFS/certificados/LUZ_LED_NOVO.pfx","123456"))
+        complemenatarXML.setXML(complemenatarXML.sign_procNfe("./NFS/certificados/CERTIFICADO_LUZ_LED_COMERCIO_ONLINE_VENCE_13.05.2023.p12","123456"))
 
        
         #####################################################################################

@@ -118,7 +118,7 @@ class TestNFS_methods(unittest.TestCase):
             xmloriginal = fd.read()
         xml = NFS.XMLPY(xmloriginal)
         xml.generate_NFeID()
-        xml.setXML(xml.sign_procNfe("./NFS/certificados/LUZ_LED_NOVO.pfx"))
+        xml.setXML(xml.sign_procNfe("./NFS/certificados/LUZ_LED.p12"))
         xml.setXML(xml.getXML().replace("</NFe>",""))
         xml.setXML(xml.getXML().replace("</nfeProc>",""))
         xml.setXML(xml.getXML()+"</NFe></nfeProc>")
@@ -141,10 +141,24 @@ class TestNFS_methods(unittest.TestCase):
         ...
 
     def testarEnviar_xml_de_NFe_complementar_homo(self):
-        with open("NFS/Complementares/5-COMPLEMENTAR-35220946364058000115550010000001171700960334.xml")as fd:
+        with open("tests/xml/Nota_valida.xml")as fd:
             xml = NFS.XMLPY(fd.read())
 
-        xml.enviar_nfe("./NFS/Complementares/5-COMPLEMENTAR-35220946364058000115550010000001171700960334.xml",
+        xml.generate_NFeID()
+
+        retorno=xml.enviar_nfe("./tests/xml/Nota_valida.xml",
                        "./NFS/certificados/LUZ_LED_NOVO.pfx")
         
+        #carrega xml retorno
+
+        xml_retorno= NFS.XMLPY(open(retorno,"r").read().replace("200\n",""))
+
+        self.assertEqual(xml_retorno.getXMLDict()["soap:Envelope"]["soap:Body"]["nfeResultMsg"]["retEnviNFe"]["xMotivo"],"Lote recebido com sucesso")
+
+        retorno = xml.consultar_nfe(str(self.id).replace("NFe",""),"tests/results/resposta.xml","NFS/certificados/LUZ_LED_NOVO.pfx")
+        
+        xml_retorno=NFS.XMLPY(retorno.text)
+
+        self.assertNotEqual(xml_retorno.getXMLDict()["soap:Envelope"]["soap:Body"]["nfeResultMsg"]["retConsReciNFe"]["cStat"],"215")
+        self.assertNotEqual(xml_retorno.getXMLDict()["soap:Envelope"]["soap:Body"]["nfeResultMsg"]["retConsReciNFe"]["cStat"],"656")
                   

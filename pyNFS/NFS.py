@@ -357,7 +357,7 @@ class XMLPY:
         )
         return self.json
 
-    def enviar_nfe(self, caminho_nfe_assinada, caminho_do_certificado:str,senha_certificado="123456"):
+    def enviar_nfe(self, caminho_nfe_assinada, caminho_do_certificado:str,senha_certificado="123456",target_path="tests/results"):
         """enviar nfe para sefaz para autorização"""
 
         xml = etree.parse(caminho_nfe_assinada)
@@ -370,6 +370,12 @@ class XMLPY:
         )  # ind_sinc)  # 0 para assincrono, 1 para sincrono
         raiz.append(xml.getroot())
 
+        open(target_path + "/enviNFe.xml", "wb+").write(etree.tostring(raiz, pretty_print=True))
+        try:
+            self.validate_with_xsd("tests/xsds/enviNFe_v4.00.xsd", target_path + "/enviNFe.xml")
+        except Exception as e:
+            print(e)
+            return False
         # Monta XML para envio da requisição
         # xml = _construir_xml_soap('NFeAutorizacao4', raiz)
         # def _construir_xml_soap(self, metodo, dados, cabecalho=False):
@@ -398,6 +404,7 @@ class XMLPY:
         }
         # Abre a conexão HTTPS
         try:
+
             xml_declaration = '<?xml version="1.0" encoding="UTF-8"?>'
 
             # limpa xml com caracteres bugados para infNFeSupl em NFC-e
@@ -411,13 +418,19 @@ class XMLPY:
             )
             xml = xml_declaration + xml
 
+            #retirar quebra de linha
+            xml = xml.replace("\n", "")
+
+            #salva xml para debug
+            open(os.path.join(target_path,"envio_autorizacao_sefaz.xml"), "w+").write(xml)
             # Faz o request com o servidor
 
             result = requests.post(
                 url, xml, headers=headers, cert=chave_cert, verify=False
             )
             nome_result = f'result_autorizacao_sefaz - {datetime.now().strftime("%hh%mm%ss$d") }.xml'
-            open(nome_result, "w").write(f"{result.status_code}\n{result.text}")
+            open(os.path.join(target_path,nome_result), "w+").write(f"{result.status_code}\n{result.text}")
+            return os.path.join(target_path,nome_result)
         except requests.exceptions.RequestException as e:
             raise e
         finally:
@@ -449,7 +462,7 @@ class XMLPY:
         if (salvar_resultado_em_arquivo):
             caminho_padrão = f'result_consulta - {datetime.now().strftime("%hh%mm%ss-$d") }.xml'
             caminho  = salvar_resultado_em_arquivo if isinstance(salvar_resultado_em_arquivo, str)  else caminho_padrão
-            open(caminho,'w').write(result.text)
+            open(caminho,'w+').write(result.text)
         return result
 
     
