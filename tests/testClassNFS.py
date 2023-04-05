@@ -1,5 +1,4 @@
 import unittest
-
 from pyNFS import NFS
 import os
 
@@ -118,7 +117,7 @@ class TestNFS_methods(unittest.TestCase):
             xmloriginal = fd.read()
         xml = NFS.XMLPY(xmloriginal)
         xml.generate_NFeID()
-        xml.setXML(xml.sign_procNfe("./NFS/certificados/LUZ_LED.p12"))
+        xml.setXML(xml.sign_procNfe("./NFS/certificados/LUZ_LED_NOVO.pfx"))
         xml.setXML(xml.getXML().replace("</NFe>",""))
         xml.setXML(xml.getXML().replace("</nfeProc>",""))
         xml.setXML(xml.getXML()+"</NFe></nfeProc>")

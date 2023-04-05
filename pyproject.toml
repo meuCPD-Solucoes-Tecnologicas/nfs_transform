@@ -7,7 +7,7 @@ license = "GPL"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.9"
 xmltodict = "^0.13.0"
 pytz = "^2023.3"
 xsd-validator = "^0.0.3"
@@ -20,6 +20,7 @@ zeep = "^4.2.1"
 
 [tool.poetry.group.dev.dependencies]
 autopep8 = "^2.0.2"
+ipython = "^8.12.0"
 
 [build-system]
 requires = ["poetry-core"]

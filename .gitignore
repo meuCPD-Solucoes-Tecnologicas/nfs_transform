@@ -147,3 +147,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+tests/results/resposta.xml
+tests/results/result_autorizacao_sefaz - Aprh04m1680700741s$d.xml
+dict_que
+dict_que.json
+get_dict.py

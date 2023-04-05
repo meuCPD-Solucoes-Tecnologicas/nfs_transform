@@ -436,7 +436,7 @@ class XMLPY:
         finally:
             certificado_a1.excluir()
 
-    def consultar_nfe(self,numero_nfe:str, salvar_resultado_em_arquivo:bool|str,caminho_do_certificado:str,senha_certificado="123456",
+    def consultar_nfe(self,numero_nfe:str, salvar_resultado_em_arquivo,caminho_do_certificado:str,senha_certificado="123456",
                       
                       ):
         """

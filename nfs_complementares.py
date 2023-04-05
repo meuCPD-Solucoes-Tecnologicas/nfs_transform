@@ -36,27 +36,26 @@ def main(argv):
     print("Arquivos Encontrados:")
     for xmlfile in xmlFiles:
         print(xmlfile)
-    pass
 
 
     print("Transformando Complementares:")
     nNFE=2708
-    for xmlarqs in xmlFiles:
-        originalXML = nfs.XMLPY(open(os.path.join(sourceFolder,xmlarqs),'r').read())
+    for xmlFile in xmlFiles:
+        originalXML = nfs.XMLPY(open(os.path.join(sourceFolder,xmlFile),'r').read())
         complemenatarXML = nfs.XMLPY(open(os.path.join(baseFOlder,"base.xml"),'rb').read())
         #####################################################################################
         # Referencia da complementar na nf original
 
-        dict = complemenatarXML.getXMLDict()
-        complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"] =str(originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']["@Id"]).replace("NFe","")
-        complemenatarXML.setXMLDict(dict)
+        # xml_dict = complemenatarXML.getXMLDict()
+        complemenatarXML.xmldict["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"] =str(originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']["@Id"]).replace("NFe","")
+        complemenatarXML.setXMLDict(complemenatarXML.xmldict)
         
         #nNF da complementar
         #começa em 2708 com 6 digitos e vai incrementando
-        dict = complemenatarXML.getXMLDict()
+        xml_dict = complemenatarXML.getXMLDict()
         complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["nNF"] = str(nNFE)
         nNFE+=1
-        complemenatarXML.setXMLDict(dict)
+        complemenatarXML.setXMLDict(xml_dict)
 
         #definir data de emissão da complementar
         # Definir o fuso horário
@@ -69,91 +68,91 @@ def main(argv):
         #2023-03-21T16:19:49-03:00
         formatted_date = now.strftime("%Y-%m-%dT%H:%M:%S-03:00")
 
-        dict = complemenatarXML.getXMLDict()
+        xml_dict = complemenatarXML.getXMLDict()
         complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["dhEmi"] = formatted_date
-        complemenatarXML.setXMLDict(dict)
+        complemenatarXML.setXMLDict(xml_dict)
 
         #cNF e cDV da complementar
 
-        dict = complemenatarXML.getXMLDict()
-
+        xml_dict = complemenatarXML.getXMLDict()
         complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["cNF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['cNF']
         #complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["cDV"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['cDV']
 
         # Complemento de ICMS
-        dict = complemenatarXML.getXMLDict()
+        xml_dict = complemenatarXML.getXMLDict()
         #save original value on file
         with open(os.path.join(targetFolder,"originalvalue.py"),'w+') as fd:
             fd.write(str(complemenatarXML.getXMLDict())+'\n')
         try:
             #print(originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']['prod'])
-            dict['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']['prod']['vProd']
-            dict['NFe']['infNFe']["total"]["ICMSTot"]["vBC"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']['prod']['vProd']
-            dict['NFe']['infNFe']["det"]["prod"]["NCM"]=originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']['prod']['NCM']
+            xml_dict['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']['prod']['vProd']
+            xml_dict['NFe']['infNFe']["total"]["ICMSTot"]["vBC"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']['prod']['vProd']
+            xml_dict['NFe']['infNFe']["det"]["prod"]["NCM"]=originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']['prod']['NCM']
         except: 
             #print(originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det'][0]['prod'])
             print("VPROD EM LISTA")
-            dict['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det'][0]['prod']['vProd']
-            dict['NFe']['infNFe']["total"]["ICMSTot"]["vBC"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det'][0]['prod']['vProd']
-            dict['NFe']['infNFe']["det"]["prod"]["NCM"]=originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det'][0]['prod']['NCM']
+            xml_dict['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det'][0]['prod']['vProd']
+            xml_dict['NFe']['infNFe']["total"]["ICMSTot"]["vBC"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det'][0]['prod']['vProd']
+            xml_dict['NFe']['infNFe']["det"]["prod"]["NCM"]=originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det'][0]['prod']['NCM']
 
-        complemenatarXML.setXMLDict(dict)
+        complemenatarXML.setXMLDict(xml_dict)
 
         #  Complemento de CONFINS
-        dict = complemenatarXML.getXMLDict()
+        xml_dict = complemenatarXML.getXMLDict()
         try:
-            dict['NFe']['infNFe']["det"]["imposto"]["COFINS"]["COFINSOutr"]["vBC"] = str("0.00")
-            dict['NFe']['infNFe']["det"]["imposto"]["COFINS"]["COFINSOutr"]["pCOFINS"] = str("0.00")
-            dict['NFe']['infNFe']["det"]["imposto"]["COFINS"]["COFINSOutr"]["vCOFINS"] = str("0.00")
-            dict['NFe']['infNFe']["det"]["imposto"]["PIS"]["PISOutr"]["vBC"] = str("0.00")
-            dict['NFe']['infNFe']["det"]["imposto"]["PIS"]["PISOutr"]["pPIS"] = str("0.00")
-            dict['NFe']['infNFe']["det"]["imposto"]["PIS"]["PISOutr"]["vPIS"] = str("0.00")
+            xml_dict['NFe']['infNFe']["det"]["imposto"]["COFINS"]["COFINSOutr"]["vBC"] = str("0.00")
+            xml_dict['NFe']['infNFe']["det"]["imposto"]["COFINS"]["COFINSOutr"]["pCOFINS"] = str("0.00")
+            xml_dict['NFe']['infNFe']["det"]["imposto"]["COFINS"]["COFINSOutr"]["vCOFINS"] = str("0.00")
+            xml_dict['NFe']['infNFe']["det"]["imposto"]["PIS"]["PISOutr"]["vBC"] = str("0.00")
+            xml_dict['NFe']['infNFe']["det"]["imposto"]["PIS"]["PISOutr"]["pPIS"] = str("0.00")
+            xml_dict['NFe']['infNFe']["det"]["imposto"]["PIS"]["PISOutr"]["vPIS"] = str("0.00")
         except:
             print("VBC EM LISTA")
-            dict['NFe']['infNFe']["det"][0]["imposto"]["COFINS"]["COFINSOutr"]["vBC"] = str("0.00")
-            dict['NFe']['infNFe']["det"][0]["imposto"]["COFINS"]["COFINSOutr"]["pCOFINS"] = str("0.00")
-            dict['NFe']['infNFe']["det"][0]["imposto"]["COFINS"]["COFINSOutr"]["vCOFINS"] = str("0.00")
-            dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["vBC"] = str("0.00")
-            dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["pPIS"] = str("0.00")
-            dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["vPIS"] = str("0.00")
-        complemenatarXML.setXMLDict(dict)
+            xml_dict['NFe']['infNFe']["det"][0]["imposto"]["COFINS"]["COFINSOutr"]["vBC"] = str("0.00")
+            xml_dict['NFe']['infNFe']["det"][0]["imposto"]["COFINS"]["COFINSOutr"]["pCOFINS"] = str("0.00")
+            xml_dict['NFe']['infNFe']["det"][0]["imposto"]["COFINS"]["COFINSOutr"]["vCOFINS"] = str("0.00")
+            xml_dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["vBC"] = str("0.00")
+            xml_dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["pPIS"] = str("0.00")
+            xml_dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["vPIS"] = str("0.00")
+        complemenatarXML.setXMLDict(xml_dict)
 
         # ICMS Total
-        dict = complemenatarXML.getXMLDict()
+        xml_dict = complemenatarXML.getXMLDict()
         try:
-            dict['NFe']['infNFe']["total"]["ICMSTot"]["vICMS"] = "{:.2f}".format(round(float(complemenatarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2))
+            xml_dict['NFe']['infNFe']["total"]["ICMSTot"]["vICMS"] = "{:.2f}".format(round(float(complemenatarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2))
             complemenatarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vICMS"] = "{:.2f}".format(round(float(complemenatarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2))
         except Exception as e:
             print(e)
-            dict['NFe']['infNFe']["total"]["ICMSTot"]["vICMS"] = "{:.2f}".format(round(float(complemenatarXML.getXMLDict()['NFe']['infNFe']["det"][0]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2))
+            print("ICMS EM LISTA")
+            xml_dict['NFe']['infNFe']["total"]["ICMSTot"]["vICMS"] = "{:.2f}".format(round(float(complemenatarXML.getXMLDict()['NFe']['infNFe']["det"][0]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2))
             complemenatarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vICMS"] = "{:.2f}".format(round(float(complemenatarXML.getXMLDict()['NFe']['infNFe']["det"][0]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2))
-        complemenatarXML.setXMLDict(dict)
+        complemenatarXML.setXMLDict(xml_dict)
 
         #  InfADIC
-        dict = complemenatarXML.getXMLDict()
+        xml_dict = complemenatarXML.getXMLDict()
 
         valores={'data-emissao': originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['dhEmi'],
                  "No_NF": originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['nNF'],
                  "serie": originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['serie']}
         texto=f"""Conforme artigo 182 IV do RICMS, Nota fiscal complementar de ICMS referente a NF {valores["No_NF"]} da serie {str(valores["serie"]).zfill(2)} de {datetime.strptime(valores["data-emissao"].split("T")[0].replace("-","/"),"%Y/%m/%d").strftime("%d/%m/%Y")}."""
-        dict['NFe']['infNFe']["infAdic"]["infCpl"] = texto
-        dict['NFe']['infNFe']["ide"]["serie"] = valores['serie']
-        dict['NFe']['infNFe']["ide"]["natOp"] = f"Complementar de ICMS (Serie {valores['serie']})"
+        xml_dict['NFe']['infNFe']["infAdic"]["infCpl"] = texto
+        xml_dict['NFe']['infNFe']["ide"]["serie"] = valores['serie']
+        xml_dict['NFe']['infNFe']["ide"]["natOp"] = f"Complementar de ICMS (Serie {valores['serie']})"
         
         if(valores['serie'] == '1'):
             try:
-                dict['NFe']['infNFe']["det"]["prod"]["CFOP"] = '6108'
+                xml_dict['NFe']['infNFe']["det"]["prod"]["CFOP"] = '6108'
             except:
-                dict['NFe']['infNFe']["det"][0]["prod"]["CFOP"] = '6108'
+                xml_dict['NFe']['infNFe']["det"][0]["prod"]["CFOP"] = '6108'
         elif(valores['serie'] == '2'):
             try:
-                dict['NFe']['infNFe']["det"]["prod"]["CFOP"] = '6106'
+                xml_dict['NFe']['infNFe']["det"]["prod"]["CFOP"] = '6106'
             except:
-                dict['NFe']['infNFe']["det"][0]["prod"]["CFOP"] = '6106'
+                xml_dict['NFe']['infNFe']["det"][0]["prod"]["CFOP"] = '6106'
 
 
 
-        complemenatarXML.setXMLDict(dict)
+        complemenatarXML.setXMLDict(xml_dict)
 
         #emit 
 
@@ -200,23 +199,23 @@ def main(argv):
                 <CRT>1</CRT>
             </emit>
                 """
-        dict = complemenatarXML.getXMLDict()
-        dict['NFe']['infNFe']["emit"]["CNPJ"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['CNPJ']
-        dict['NFe']['infNFe']["emit"]["xNome"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['xNome']
-        dict['NFe']['infNFe']["emit"]["enderEmit"]["xLgr"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['xLgr']
-        dict['NFe']['infNFe']["emit"]["enderEmit"]["nro"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['nro']
-        dict['NFe']['infNFe']["emit"]["enderEmit"]["xBairro"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['xBairro']
-        dict['NFe']['infNFe']["emit"]["enderEmit"]["cMun"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['cMun']
-        dict['NFe']['infNFe']["emit"]["enderEmit"]["xMun"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['xMun']
-        dict['NFe']['infNFe']["emit"]["enderEmit"]["UF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['UF']
-        dict['NFe']['infNFe']["emit"]["enderEmit"]["CEP"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['CEP']
-        dict['NFe']['infNFe']["emit"]["enderEmit"]["cPais"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['cPais']
-        dict['NFe']['infNFe']["emit"]["enderEmit"]["xPais"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['xPais']
-        dict['NFe']['infNFe']["emit"]["enderEmit"]["fone"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['fone']
-        dict['NFe']['infNFe']["emit"]["IE"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['IE']
-        dict['NFe']['infNFe']["emit"]["CRT"] = 3#originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['CRT']
+        xml_dict = complemenatarXML.getXMLDict()
+        xml_dict['NFe']['infNFe']["emit"]["CNPJ"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['CNPJ']
+        xml_dict['NFe']['infNFe']["emit"]["xNome"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['xNome']
+        xml_dict['NFe']['infNFe']["emit"]["enderEmit"]["xLgr"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['xLgr']
+        xml_dict['NFe']['infNFe']["emit"]["enderEmit"]["nro"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['nro']
+        xml_dict['NFe']['infNFe']["emit"]["enderEmit"]["xBairro"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['xBairro']
+        xml_dict['NFe']['infNFe']["emit"]["enderEmit"]["cMun"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['cMun']
+        xml_dict['NFe']['infNFe']["emit"]["enderEmit"]["xMun"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['xMun']
+        xml_dict['NFe']['infNFe']["emit"]["enderEmit"]["UF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['UF']
+        xml_dict['NFe']['infNFe']["emit"]["enderEmit"]["CEP"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['CEP']
+        xml_dict['NFe']['infNFe']["emit"]["enderEmit"]["cPais"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['cPais']
+        xml_dict['NFe']['infNFe']["emit"]["enderEmit"]["xPais"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['xPais']
+        xml_dict['NFe']['infNFe']["emit"]["enderEmit"]["fone"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['fone']
+        xml_dict['NFe']['infNFe']["emit"]["IE"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['IE']
+        xml_dict['NFe']['infNFe']["emit"]["CRT"] = 3 #  originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['CRT']
 
-        complemenatarXML.setXMLDict(dict)
+        complemenatarXML.setXMLDict(xml_dict)
 
         #dest
         """complementar
@@ -256,36 +255,36 @@ def main(argv):
             </dest>
 
         """
-        dict = complemenatarXML.getXMLDict()
+        xml_dict = complemenatarXML.getXMLDict()
 
-        dict['NFe']['infNFe']["dest"]["CPF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['CPF']
-        dict['NFe']['infNFe']["dest"]["xNome"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['xNome']
-        dict['NFe']['infNFe']["dest"]["enderDest"]["xLgr"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['xLgr']
-        dict['NFe']['infNFe']["dest"]["enderDest"]["nro"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['nro']
-        dict['NFe']['infNFe']["dest"]["enderDest"]["xBairro"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['xBairro']
-        dict['NFe']['infNFe']["dest"]["enderDest"]["cMun"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['cMun']
-        dict['NFe']['infNFe']["dest"]["enderDest"]["xMun"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['xMun']
-        dict['NFe']['infNFe']["dest"]["enderDest"]["UF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['UF']
-        dict['NFe']['infNFe']["dest"]["enderDest"]["CEP"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['CEP']
-        dict['NFe']['infNFe']["dest"]["enderDest"]["cPais"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['cPais']
-        dict['NFe']['infNFe']["dest"]["enderDest"]["xPais"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['xPais']
-        dict['NFe']['infNFe']["dest"]["indIEDest"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['indIEDest']
+        xml_dict['NFe']['infNFe']["dest"]["CPF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['CPF']
+        xml_dict['NFe']['infNFe']["dest"]["xNome"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['xNome']
+        xml_dict['NFe']['infNFe']["dest"]["enderDest"]["xLgr"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['xLgr']
+        xml_dict['NFe']['infNFe']["dest"]["enderDest"]["nro"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['nro']
+        xml_dict['NFe']['infNFe']["dest"]["enderDest"]["xBairro"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['xBairro']
+        xml_dict['NFe']['infNFe']["dest"]["enderDest"]["cMun"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['cMun']
+        xml_dict['NFe']['infNFe']["dest"]["enderDest"]["xMun"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['xMun']
+        xml_dict['NFe']['infNFe']["dest"]["enderDest"]["UF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['UF']
+        xml_dict['NFe']['infNFe']["dest"]["enderDest"]["CEP"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['CEP']
+        xml_dict['NFe']['infNFe']["dest"]["enderDest"]["cPais"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['cPais']
+        xml_dict['NFe']['infNFe']["dest"]["enderDest"]["xPais"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['xPais']
+        xml_dict['NFe']['infNFe']["dest"]["indIEDest"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['indIEDest']
 
-        complemenatarXML.setXMLDict(dict)
+        complemenatarXML.setXMLDict(xml_dict)
         
 
         # gerar o id da nota
-        dict = complemenatarXML.getXMLDict()
-        complemenatarXML.generate_NFeID()
-        dict["NFe"]["infNFe"]["@Id"] = complemenatarXML.id
-        complemenatarXML.setXMLDict(dict)
-        # Assinar o XML
-        complemenatarXML.setXML(complemenatarXML.sign_procNfe("./NFS/certificados/CERTIFICADO_LUZ_LED_COMERCIO_ONLINE_VENCE_13.05.2023.p12","123456"))
+        # xml_dict = complemenatarXML.getXMLDict()
+        # complemenatarXML.generate_NFeID()
+        # xml_dict["NFe"]["infNFe"]["@Id"] = complemenatarXML.id
+        # complemenatarXML.setXMLDict(xml_dict)
+        # # Assinar o XML
+        # complemenatarXML.setXML(complemenatarXML.sign_procNfe("./NFS/certificados/CERTIFICADO_LUZ_LED_COMERCIO_ONLINE_VENCE_13.05.2023.p12","123456"))
 
        
         #####################################################################################
         print(complemenatarXML.getXMLDict()["NFe"]["infNFe"]["@Id"])
-        arqname = os.path.join(targetFolder,xmlarqs.split("-")[0].replace(" ","")+"-COMPLEMENTAR-"+complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"]+'.xml')
+        arqname = os.path.join(targetFolder,xmlFile.split("-")[0].replace(" ","")+"-COMPLEMENTAR-"+complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"]+'.xml')
         complemenatarXML.saveXML(arqname)
          #validar o xml
         try:
