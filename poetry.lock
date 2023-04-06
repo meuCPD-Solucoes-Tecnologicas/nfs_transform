@@ -31,25 +31,6 @@ six = "*"
 test = ["astroid", "pytest"]
 
 [[package]]
-name = "attrs"
-version = "22.2.0"
-description = "Classes Without Boilerplate"
-category = "main"
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "attrs-22.2.0-py3-none-any.whl", hash = "sha256:29e95c7f6778868dbd49170f98f8818f78f3dc5e0e37c0b1f474e3561b240836"},
-    {file = "attrs-22.2.0.tar.gz", hash = "sha256:c9227bfc2f01993c03f68db37d1d15c9690188323c067c641f1a35ca58185f99"},
-]
-
-[package.extras]
-cov = ["attrs[tests]", "coverage-enable-subprocess", "coverage[toml] (>=5.3)"]
-dev = ["attrs[docs,tests]"]
-docs = ["furo", "myst-parser", "sphinx", "sphinx-notfound-page", "sphinxcontrib-towncrier", "towncrier", "zope.interface"]
-tests = ["attrs[tests-no-zope]", "zope.interface"]
-tests-no-zope = ["cloudpickle", "cloudpickle", "hypothesis", "hypothesis", "mypy (>=0.971,<0.990)", "mypy (>=0.971,<0.990)", "pympler", "pympler", "pytest (>=4.3.0)", "pytest (>=4.3.0)", "pytest-mypy-plugins", "pytest-mypy-plugins", "pytest-xdist[psutil]", "pytest-xdist[psutil]"]
-
-[[package]]
 name = "autopep8"
 version = "2.0.2"
 description = "A tool that automatically formats Python code to conform to the PEP 8 style guide"
@@ -385,21 +366,6 @@ test = ["pytest (<7.1)", "pytest-asyncio", "testpath"]
 test-extra = ["curio", "matplotlib (!=3.2.0)", "nbformat", "numpy (>=1.21)", "pandas", "pytest (<7.1)", "pytest-asyncio", "testpath", "trio"]
 
 [[package]]
-name = "isodate"
-version = "0.6.1"
-description = "An ISO 8601 date/time/duration parser and formatter"
-category = "main"
-optional = false
-python-versions = "*"
-files = [
-    {file = "isodate-0.6.1-py2.py3-none-any.whl", hash = "sha256:0751eece944162659049d35f4f549ed815792b38793f07cf73381c1c87cbed96"},
-    {file = "isodate-0.6.1.tar.gz", hash = "sha256:48c5881de7e8b0a0d648cb024c8062dc84e7b840ed81e864c7614fd3c127bde9"},
-]
-
-[package.dependencies]
-six = "*"
-
-[[package]]
 name = "jedi"
 version = "0.18.2"
 description = "An autocompletion tool for Python that can be used for text editors."
@@ -528,20 +494,6 @@ files = [
 traitlets = "*"
 
 [[package]]
-name = "nfelib"
-version = "1.3.0"
-description = "nfelib: electronic invoicing library for Brazil"
-category = "main"
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "nfelib-1.3.0.zip", hash = "sha256:24244bb4f03dd60ad81f95cb28f03378c30aa8c2f2e0efc40a336ba06ea358ab"},
-]
-
-[package.extras]
-test = ["codecov", "pytest", "pytest-cov", "tox", "xmldiff"]
-
-[[package]]
 name = "parso"
 version = "0.8.3"
 description = "A Python Parser"
@@ -583,22 +535,6 @@ files = [
     {file = "pickleshare-0.7.5-py2.py3-none-any.whl", hash = "sha256:9649af414d74d4df115d5d718f82acb59c9d418196b7b4290ed47a12ce62df56"},
     {file = "pickleshare-0.7.5.tar.gz", hash = "sha256:87683d47965c1da65cdacaf31c8441d12b8044cdec9aca500cd78fc2c683afca"},
 ]
-
-[[package]]
-name = "platformdirs"
-version = "3.2.0"
-description = "A small Python package for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
-category = "main"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "platformdirs-3.2.0-py3-none-any.whl", hash = "sha256:ebe11c0d7a805086e99506aa331612429a72ca7cd52a1f0d277dc4adc20cb10e"},
-    {file = "platformdirs-3.2.0.tar.gz", hash = "sha256:d5b638ca397f25f979350ff789db335903d7ea010ab28903f57b27e1b16c2b08"},
-]
-
-[package.extras]
-docs = ["furo (>=2022.12.7)", "proselint (>=0.13)", "sphinx (>=6.1.3)", "sphinx-autodoc-typehints (>=1.22,!=1.23.4)"]
-test = ["appdirs (==1.4.4)", "covdefaults (>=2.3)", "pytest (>=7.2.2)", "pytest-cov (>=4)", "pytest-mock (>=3.10)"]
 
 [[package]]
 name = "prompt-toolkit"
@@ -682,6 +618,27 @@ files = [
 plugins = ["importlib-metadata"]
 
 [[package]]
+name = "pynfe"
+version = "0.4.3"
+description = "Interface library with the Brazilian Electronic Invoice web services"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "PyNFe-0.4.3-py3-none-any.whl", hash = "sha256:458c6646a4efb151ec759f7af8fb1658b2e2432362f90a155666fc11425df464"},
+    {file = "PyNFe-0.4.3.tar.gz", hash = "sha256:23117264659566476e191cff60f883bb0ecf170d9429adabb4486cc3334373c1"},
+]
+
+[package.dependencies]
+lxml = "*"
+pyopenssl = ">=23.0.0"
+requests = "*"
+signxml = "2.10.1"
+
+[package.extras]
+nfse = ["pyxb (==1.2.4)", "suds-jurko"]
+
+[[package]]
 name = "pyopenssl"
 version = "23.1.1"
 description = "Python wrapper module around the OpenSSL library"
@@ -735,51 +692,20 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
-name = "requests-file"
-version = "1.5.1"
-description = "File transport adapter for Requests"
+name = "signxml"
+version = "2.10.1"
+description = "Python XML Signature library"
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "requests-file-1.5.1.tar.gz", hash = "sha256:07d74208d3389d01c38ab89ef403af0cfec63957d53a0081d8eca738d0247d8e"},
-    {file = "requests_file-1.5.1-py2.py3-none-any.whl", hash = "sha256:dfe5dae75c12481f68ba353183c53a65e6044c923e64c24b2209f6c7570ca953"},
-]
-
-[package.dependencies]
-requests = ">=1.0.0"
-six = "*"
-
-[[package]]
-name = "requests-toolbelt"
-version = "0.10.1"
-description = "A utility belt for advanced users of python-requests"
-category = "main"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-files = [
-    {file = "requests-toolbelt-0.10.1.tar.gz", hash = "sha256:62e09f7ff5ccbda92772a29f394a49c3ad6cb181d568b1337626b2abb628a63d"},
-    {file = "requests_toolbelt-0.10.1-py2.py3-none-any.whl", hash = "sha256:18565aa58116d9951ac39baa288d3adb5b3ff975c4f25eee78555d89e8f247f7"},
-]
-
-[package.dependencies]
-requests = ">=2.0.1,<3.0.0"
-
-[[package]]
-name = "signxml"
-version = "3.1.0"
-description = "Python XML Signature and XAdES library"
-category = "main"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "signxml-3.1.0-py2.py3-none-any.whl", hash = "sha256:c6f4f590a1ac1eb9a5379a21b7b67d9777973f2d326c4e6d06d52208904a6304"},
-    {file = "signxml-3.1.0.tar.gz", hash = "sha256:6daf7c6fbafe95ba4d4d74e61f5823dcaacc2c9e9f4650c56ccae0f1f5cc0bf9"},
+    {file = "signxml-2.10.1-py2.py3-none-any.whl", hash = "sha256:61adc4f6c8e7eeea1f8f536fdc55bd45ddaf40854498c68558cb05af8787ffa1"},
+    {file = "signxml-2.10.1.tar.gz", hash = "sha256:2d4205ded5cb97eba380d278f4691606e79ed73ba5facff827f4c86e094d790b"},
 ]
 
 [package.dependencies]
 certifi = ">=2018.1.18"
-cryptography = ">=3.4.8"
+cryptography = ">=2.1.4"
 lxml = ">=4.2.1,<5"
 pyOpenSSL = ">=17.5.0"
 
@@ -787,7 +713,7 @@ pyOpenSSL = ">=17.5.0"
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 files = [
@@ -907,35 +833,7 @@ files = [
     {file = "xsd_validator-0.0.3-py3-none-any.whl", hash = "sha256:dbc1407f8b747610a60570d19edc848b1d8e9ed3dbc955e02aee5e7db84aded1"},
 ]
 
-[[package]]
-name = "zeep"
-version = "4.2.1"
-description = "A Python SOAP client"
-category = "main"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "zeep-4.2.1-py3-none-any.whl", hash = "sha256:6754feb4c34a4b6d65fbc359252bf6654dcce3937bf1d95aae4402a60a8f5939"},
-    {file = "zeep-4.2.1.tar.gz", hash = "sha256:72093acfdb1d8360ed400869b73fbf1882b95c4287f798084c42ee0c1ff0e425"},
-]
-
-[package.dependencies]
-attrs = ">=17.2.0"
-isodate = ">=0.5.4"
-lxml = ">=4.6.0"
-platformdirs = ">=1.4.0"
-pytz = "*"
-requests = ">=2.7.0"
-requests-file = ">=1.5.1"
-requests-toolbelt = ">=0.7.1"
-
-[package.extras]
-async = ["httpx (>=0.15.0)"]
-docs = ["sphinx (>=1.4.0)"]
-test = ["coverage[toml] (==5.2.1)", "flake8 (==3.8.3)", "flake8-blind-except (==0.1.1)", "flake8-debugger (==3.2.1)", "flake8-imports (==0.1.1)", "freezegun (==0.3.15)", "isort (==5.3.2)", "pretend (==1.0.9)", "pytest (==6.2.5)", "pytest-asyncio", "pytest-cov (==2.8.1)", "pytest-httpx", "requests-mock (>=0.7.0)"]
-xmlsec = ["xmlsec (>=0.6.1)"]
-
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "677149fa30eca88a5549e7b5ac064b4a3bab804e645601db95f9332511048e31"
+content-hash = "814460ac97f30e12423f938eaeb3d6eac53def3beaa67bb6358da7dc9d970cf3"

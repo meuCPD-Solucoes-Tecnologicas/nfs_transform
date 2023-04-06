@@ -1,8 +1,8 @@
 import datetime
 from decimal import Decimal
 from pprint import pp
-from map4 import mapCliente, mapEmitente, mapProduto, mapaT
-from nfe_as_dict import nfe_xml
+from .map4 import mapCliente, mapEmitente, mapProduto, mapaT
+from .nfe_as_dict import nfe_xml
 from pynfe.entidades.fonte_dados import _fonte_dados
 from pynfe.entidades.notafiscal import NotaFiscal
 from pynfe.entidades import *
