@@ -1,16 +1,7 @@
-from datetime import datetime
-import re
-import requests
 import xmltodict as xd
-from pynfe.entidades.certificado import CertificadoA1
-from pynfe.processamento.assinatura import AssinaturaA1
-from pynfe.processamento.comunicacao import ComunicacaoSefaz
-from pynfe.utils.flags import NAMESPACE_METODO, NAMESPACE_NFE, NAMESPACE_SOAP, NAMESPACE_XSD, NAMESPACE_XSI, VERSAO_PADRAO
 import xsd_validator as xsdV
 import os
 from lxml import etree
-import signxml
-import pynfe.entidades as nfeent
 import json
 
 
@@ -20,27 +11,17 @@ class XMLPY:
     id = ""
 
     def __init__(self, xml: str):
-        self.xmlBytes = xml
         self.xml = xml
         self.xmldict = xd.parse(self.xml)
-        pass
-
-    @property
-    def xml_lxml_etree_obj(self):
-        """retorna o xml como objeto lxml.etree"""
-        return etree.fromstring(self.xmlBytes)
+        
 
     def getXML(self):
         return self.xml
 
     def setXML(self, xml: str):
         self.xml = xml
-        self.xmlBytes = xml.encode()
-        try:
-            self.xmldict = xd.parse(self.xml)
-
-        except:
-            pass
+        self.xmldict = xd.parse(self.xml)
+            
 
     def getXMLDict(self):
         return self.xmldict
@@ -48,17 +29,16 @@ class XMLPY:
     def setXMLDict(self, xmldict: dict):
         self.xmldict = xmldict
         self.xml = xd.unparse(self.xmldict)
-        self.xmlBytes = self.xml.encode()
-        pass
+        
 
     def parseXML(self):
         return xd.parse(self.xml)
-        pass
+        
 
     def saveXML(self, filename: str):
         with open(filename, "w+") as fd:
             fd.write(self.xml)
-        pass
+        
 
     def generate_NFeID(self):
         """A chave de acesso da nota fiscal é um identificador único da NF-e e é formada por uma sequência de 44 números que representam vários dados que identificam a nota fiscal e a empresa. Um template para a chave de acesso da nota fiscal poderia ser assim:
@@ -311,160 +291,28 @@ class XMLPY:
 
         # set id
         self.id = "NFe" + cUF + AAMM + CNPJ + mod + serie + nNF + tpEmis + cNF + cDV
-        pass
+        
 
     def validate_with_xsd(self, xsd_path, xml_path):
         # validate xsd_path exists
 
         if not os.path.exists(xsd_path):
             raise Exception("XSD file not found")
-            pass
+            
         # validate xml_path exists
         if not os.path.exists(xml_path):
             raise Exception("XML file not found")
-            pass
+            
 
         validator = xsdV.XsdValidator(xsd_path)
         validator.assert_valid(os.path.relpath(xml_path))
-        pass
-
-    def sign_procNfe(self, cert_file_path: str, senha="123456"):
-        """
-        Sign the xml file with the cert and key files
-
-        Args:
-            cert_file_path: o caminho do arquivo do certificado
-            key_file: a file with the key
-
-        Returns:
-            _type_: string with the signed xml
-
-        """
-
-        a1 = AssinaturaA1(cert_file_path, senha)
-
-        self.setXML(a1.assinar(self.xml_lxml_etree_obj, True).replace("\n", ""))
-
-        self.setXML(self.xml.replace("</NFe>", ""))
-        self.setXML(self.xml.replace("</nfeProc>", ""))
-        self.setXML("""<?xml version="1.0" encoding="UTF-8"?>""" + self.xml + "</NFe>")
-
-        return self.xml
+        
 
     def get_Json(self):
         self.json = json.dumps(
             self.getXMLDict(), indent=4, sort_keys=True, ensure_ascii=False
         )
         return self.json
-
-    def enviar_nfe(self, caminho_nfe_assinada, caminho_do_certificado:str,senha_certificado="123456",target_path="tests/results"):
-        """enviar nfe para sefaz para autorização"""
-
-        xml = etree.parse(caminho_nfe_assinada)
-        raiz = etree.Element("enviNFe", xmlns=NAMESPACE_NFE, versao=VERSAO_PADRAO)
-        etree.SubElement(raiz, "idLote").text = str(
-            1
-        )  # id_lote)  # numero autoincremental gerado pelo sistema
-        etree.SubElement(raiz, "indSinc").text = str(
-            1
-        )  # ind_sinc)  # 0 para assincrono, 1 para sincrono
-        raiz.append(xml.getroot())
-
-        open(target_path + "/enviNFe.xml", "wb+").write(etree.tostring(raiz, pretty_print=True))
-        try:
-            self.validate_with_xsd("tests/xsds/enviNFe_v4.00.xsd", target_path + "/enviNFe.xml")
-        except Exception as e:
-            print(e)
-            return False
-        # Monta XML para envio da requisição
-        # xml = _construir_xml_soap('NFeAutorizacao4', raiz)
-        # def _construir_xml_soap(self, metodo, dados, cabecalho=False):
-        metodo = "NFeAutorizacao4"
-        _raiz = etree.Element(
-            "{%s}Envelope" % NAMESPACE_SOAP,
-            nsmap={"xsi": NAMESPACE_XSI, "xsd": NAMESPACE_XSD, "soap": NAMESPACE_SOAP},
-        )
-        body = etree.SubElement(_raiz, "{%s}Body" % NAMESPACE_SOAP)
-        ## distribuição tem um corpo de xml diferente
-        a = etree.SubElement(body, "nfeDadosMsg", xmlns=NAMESPACE_METODO + metodo)
-        a.append(raiz)
-        xml = _raiz
-
-        # _post
-        # def _post(self, url, xml):
-        certificado_a1 = CertificadoA1(caminho_do_certificado)
-        chave, cert = certificado_a1.separar_arquivo(senha_certificado, caminho=True)
-        chave_cert = (cert, chave)
-
-        # url = 'https://''nfe.fazenda.sp.gov.br/ws/nfeautorizacao4.asmx'
-        url = "https://homologacao." "nfe.fazenda.sp.gov.br/ws/nfeautorizacao4.asmx"
-        headers = {
-            "content-type": "application/soap+xml; charset=utf-8;",
-            "Accept": "application/soap+xml; charset=utf-8;",
-        }
-        # Abre a conexão HTTPS
-        try:
-
-            xml_declaration = '<?xml version="1.0" encoding="UTF-8"?>'
-
-            # limpa xml com caracteres bugados para infNFeSupl em NFC-e
-            xml = re.sub(
-                "<qrCode>(.*?)</qrCode>",
-                lambda x: x.group(0)
-                .replace("&lt;", "<")
-                .replace("&gt;", ">")
-                .replace("&amp;", ""),
-                etree.tostring(xml, encoding="unicode").replace("\n", ""),
-            )
-            xml = xml_declaration + xml
-
-            #retirar quebra de linha
-            xml = xml.replace("\n", "")
-
-            #salva xml para debug
-            open(os.path.join(target_path,"envio_autorizacao_sefaz.xml"), "w+").write(xml)
-            # Faz o request com o servidor
-
-            result = requests.post(
-                url, xml, headers=headers, cert=chave_cert, verify=False
-            )
-            nome_result = f'result_autorizacao_sefaz - {datetime.now().strftime("%hh%mm%ss$d") }.xml'
-            open(os.path.join(target_path,nome_result), "w+").write(f"{result.status_code}\n{result.text}")
-            return os.path.join(target_path,nome_result)
-        except requests.exceptions.RequestException as e:
-            raise e
-        finally:
-            certificado_a1.excluir()
-
-    def consultar_nfe(self,numero_nfe:str, salvar_resultado_em_arquivo,caminho_do_certificado:str,senha_certificado="123456",
-                      
-                      ):
-        """
-            se salvar_resultado_em_arquivo for True ou uma string, salva o resultado em arquivo antes de retornar
-                se for uma string, salvará no caminho dado pela string
-                caso contrário num caminho padrão
-        """
-
-
-        # 351011029384115
-        con = ComunicacaoSefaz(
-            uf="SP",
-            homologacao=True,
-            certificado=caminho_do_certificado,
-            certificado_senha=senha_certificado,
-        )
-
-        result = con.consulta_recibo(
-            modelo="nfe",
-            numero=numero_nfe,
-        )
-
-        if (salvar_resultado_em_arquivo):
-            caminho_padrão = f'result_consulta - {datetime.now().strftime("%hh%mm%ss-$d") }.xml'
-            caminho  = salvar_resultado_em_arquivo if isinstance(salvar_resultado_em_arquivo, str)  else caminho_padrão
-            open(caminho,'w+').write(result.text)
-        return result
-
     
     def calcula_cDV(self, chave: str) -> int:
         chave = [int(i) for i in chave]

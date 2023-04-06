@@ -42,20 +42,20 @@ def main(argv):
     nNFE=2708
     for xmlFile in xmlFiles:
         originalXML = nfs.XMLPY(open(os.path.join(sourceFolder,xmlFile),'r').read())
-        complemenatarXML = nfs.XMLPY(open(os.path.join(baseFOlder,"base.xml"),'rb').read())
+        complementarXML = nfs.XMLPY(open(os.path.join(baseFOlder,"base.xml"),'r').read())
         #####################################################################################
         # Referencia da complementar na nf original
 
-        # xml_dict = complemenatarXML.getXMLDict()
-        complemenatarXML.xmldict["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"] =str(originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']["@Id"]).replace("NFe","")
-        complemenatarXML.setXMLDict(complemenatarXML.xmldict)
+        # xml_dict = complementarXML.getXMLDict()
+        complementarXML.xmldict["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"] =str(originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']["@Id"]).replace("NFe","")
+        complementarXML.setXMLDict(complementarXML.xmldict)
         
         #nNF da complementar
         #começa em 2708 com 6 digitos e vai incrementando
-        xml_dict = complemenatarXML.getXMLDict()
-        complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["nNF"] = str(nNFE)
+        xml_dict = complementarXML.getXMLDict()
+        complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["nNF"] = str(nNFE)
         nNFE+=1
-        complemenatarXML.setXMLDict(xml_dict)
+        complementarXML.setXMLDict(xml_dict)
 
         #definir data de emissão da complementar
         # Definir o fuso horário
@@ -68,21 +68,21 @@ def main(argv):
         #2023-03-21T16:19:49-03:00
         formatted_date = now.strftime("%Y-%m-%dT%H:%M:%S-03:00")
 
-        xml_dict = complemenatarXML.getXMLDict()
-        complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["dhEmi"] = formatted_date
-        complemenatarXML.setXMLDict(xml_dict)
+        xml_dict = complementarXML.getXMLDict()
+        complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["dhEmi"] = formatted_date
+        complementarXML.setXMLDict(xml_dict)
 
         #cNF e cDV da complementar
 
-        xml_dict = complemenatarXML.getXMLDict()
-        complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["cNF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['cNF']
-        #complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["cDV"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['cDV']
+        xml_dict = complementarXML.getXMLDict()
+        complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["cNF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['cNF']
+        #complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["cDV"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['cDV']
 
         # Complemento de ICMS
-        xml_dict = complemenatarXML.getXMLDict()
+        xml_dict = complementarXML.getXMLDict()
         #save original value on file
         with open(os.path.join(targetFolder,"originalvalue.py"),'w+') as fd:
-            fd.write(str(complemenatarXML.getXMLDict())+'\n')
+            fd.write(str(complementarXML.getXMLDict())+'\n')
         try:
             #print(originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']['prod'])
             xml_dict['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']['prod']['vProd']
@@ -95,10 +95,10 @@ def main(argv):
             xml_dict['NFe']['infNFe']["total"]["ICMSTot"]["vBC"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det'][0]['prod']['vProd']
             xml_dict['NFe']['infNFe']["det"]["prod"]["NCM"]=originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det'][0]['prod']['NCM']
 
-        complemenatarXML.setXMLDict(xml_dict)
+        complementarXML.setXMLDict(xml_dict)
 
         #  Complemento de CONFINS
-        xml_dict = complemenatarXML.getXMLDict()
+        xml_dict = complementarXML.getXMLDict()
         try:
             xml_dict['NFe']['infNFe']["det"]["imposto"]["COFINS"]["COFINSOutr"]["vBC"] = str("0.00")
             xml_dict['NFe']['infNFe']["det"]["imposto"]["COFINS"]["COFINSOutr"]["pCOFINS"] = str("0.00")
@@ -114,22 +114,22 @@ def main(argv):
             xml_dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["vBC"] = str("0.00")
             xml_dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["pPIS"] = str("0.00")
             xml_dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["vPIS"] = str("0.00")
-        complemenatarXML.setXMLDict(xml_dict)
+        complementarXML.setXMLDict(xml_dict)
 
         # ICMS Total
-        xml_dict = complemenatarXML.getXMLDict()
+        xml_dict = complementarXML.getXMLDict()
         try:
-            xml_dict['NFe']['infNFe']["total"]["ICMSTot"]["vICMS"] = "{:.2f}".format(round(float(complemenatarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2))
-            complemenatarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vICMS"] = "{:.2f}".format(round(float(complemenatarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2))
+            xml_dict['NFe']['infNFe']["total"]["ICMSTot"]["vICMS"] = "{:.2f}".format(round(float(complementarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2))
+            complementarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vICMS"] = "{:.2f}".format(round(float(complementarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2))
         except Exception as e:
             print(e)
             print("ICMS EM LISTA")
-            xml_dict['NFe']['infNFe']["total"]["ICMSTot"]["vICMS"] = "{:.2f}".format(round(float(complemenatarXML.getXMLDict()['NFe']['infNFe']["det"][0]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2))
-            complemenatarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vICMS"] = "{:.2f}".format(round(float(complemenatarXML.getXMLDict()['NFe']['infNFe']["det"][0]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2))
-        complemenatarXML.setXMLDict(xml_dict)
+            xml_dict['NFe']['infNFe']["total"]["ICMSTot"]["vICMS"] = "{:.2f}".format(round(float(complementarXML.getXMLDict()['NFe']['infNFe']["det"][0]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2))
+            complementarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vICMS"] = "{:.2f}".format(round(float(complementarXML.getXMLDict()['NFe']['infNFe']["det"][0]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04,2))
+        complementarXML.setXMLDict(xml_dict)
 
         #  InfADIC
-        xml_dict = complemenatarXML.getXMLDict()
+        xml_dict = complementarXML.getXMLDict()
 
         valores={'data-emissao': originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['dhEmi'],
                  "No_NF": originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['nNF'],
@@ -152,7 +152,7 @@ def main(argv):
 
 
 
-        complemenatarXML.setXMLDict(xml_dict)
+        complementarXML.setXMLDict(xml_dict)
 
         #emit 
 
@@ -199,7 +199,7 @@ def main(argv):
                 <CRT>1</CRT>
             </emit>
                 """
-        xml_dict = complemenatarXML.getXMLDict()
+        xml_dict = complementarXML.getXMLDict()
         xml_dict['NFe']['infNFe']["emit"]["CNPJ"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['CNPJ']
         xml_dict['NFe']['infNFe']["emit"]["xNome"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['xNome']
         xml_dict['NFe']['infNFe']["emit"]["enderEmit"]["xLgr"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['xLgr']
@@ -215,7 +215,7 @@ def main(argv):
         xml_dict['NFe']['infNFe']["emit"]["IE"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['IE']
         xml_dict['NFe']['infNFe']["emit"]["CRT"] = 3 #  originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['CRT']
 
-        complemenatarXML.setXMLDict(xml_dict)
+        complementarXML.setXMLDict(xml_dict)
 
         #dest
         """complementar
@@ -255,7 +255,7 @@ def main(argv):
             </dest>
 
         """
-        xml_dict = complemenatarXML.getXMLDict()
+        xml_dict = complementarXML.getXMLDict()
 
         xml_dict['NFe']['infNFe']["dest"]["CPF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['CPF']
         xml_dict['NFe']['infNFe']["dest"]["xNome"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['xNome']
@@ -270,29 +270,29 @@ def main(argv):
         xml_dict['NFe']['infNFe']["dest"]["enderDest"]["xPais"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['xPais']
         xml_dict['NFe']['infNFe']["dest"]["indIEDest"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['indIEDest']
 
-        complemenatarXML.setXMLDict(xml_dict)
+        complementarXML.setXMLDict(xml_dict)
         
 
         # gerar o id da nota
-        # xml_dict = complemenatarXML.getXMLDict()
-        # complemenatarXML.generate_NFeID()
-        # xml_dict["NFe"]["infNFe"]["@Id"] = complemenatarXML.id
-        # complemenatarXML.setXMLDict(xml_dict)
+        # xml_dict = complementarXML.getXMLDict()
+        # complementarXML.generate_NFeID()
+        # xml_dict["NFe"]["infNFe"]["@Id"] = complementarXML.id
+        # complementarXML.setXMLDict(xml_dict)
         # # Assinar o XML
-        # complemenatarXML.setXML(complemenatarXML.sign_procNfe("./NFS/certificados/CERTIFICADO_LUZ_LED_COMERCIO_ONLINE_VENCE_13.05.2023.p12","123456"))
+        # complementarXML.setXML(complementarXML.sign_procNfe("./NFS/certificados/CERTIFICADO_LUZ_LED_COMERCIO_ONLINE_VENCE_13.05.2023.p12","123456"))
 
        
         #####################################################################################
-        print(complemenatarXML.getXMLDict()["NFe"]["infNFe"]["@Id"])
-        arqname = os.path.join(targetFolder,xmlFile.split("-")[0].replace(" ","")+"-COMPLEMENTAR-"+complemenatarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"]+'.xml')
-        complemenatarXML.saveXML(arqname)
-         #validar o xml
-        try:
+        print(complementarXML.getXMLDict()["NFe"]["infNFe"]["@Id"])
+        arqname = os.path.join(targetFolder,xmlFile.split("-")[0].replace(" ","")+"-COMPLEMENTAR-"+complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"]+'.xml')
+        complementarXML.saveXML(arqname)
+         #validar o xml (pynfe validará agora)
+        # try:
            
-            complemenatarXML.validate_with_xsd(os.path.relpath("./tests/xsds/nfe_v4.00.xsd"),os.path.relpath(arqname))
-            print(str(arqname)+"- Success")
-        except Exception as e:
-            print(str(arqname)+"- ERRO NA VALIDACAO: "+str(e))
+        #     complementarXML.validate_with_xsd(os.path.relpath("./tests/xsds/nfe_v4.00.xsd"),os.path.relpath(arqname))
+        #     print(str(arqname)+"- Success")
+        # except Exception as e:
+        #     print(str(arqname)+"- ERRO NA VALIDACAO: "+str(e))
             
 if __name__ == '__main__':
     main(sys.argv[1:])
