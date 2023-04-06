@@ -1,5 +1,6 @@
 
 import os, sys
+from pprint import pformat
 from pyNFS import NFS as nfs
 from datetime import datetime
 from pytz import timezone
@@ -213,7 +214,7 @@ def main(argv):
         xml_dict['NFe']['infNFe']["emit"]["enderEmit"]["xPais"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['xPais']
         xml_dict['NFe']['infNFe']["emit"]["enderEmit"]["fone"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['fone']
         xml_dict['NFe']['infNFe']["emit"]["IE"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['IE']
-        xml_dict['NFe']['infNFe']["emit"]["CRT"] = 3 #  originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['CRT']
+        xml_dict['NFe']['infNFe']["emit"]["CRT"] = '3' #  originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['CRT']
 
         complementarXML.setXMLDict(xml_dict)
 
@@ -286,6 +287,7 @@ def main(argv):
         print(complementarXML.getXMLDict()["NFe"]["infNFe"]["@Id"])
         arqname = os.path.join(targetFolder,xmlFile.split("-")[0].replace(" ","")+"-COMPLEMENTAR-"+complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"]+'.xml')
         complementarXML.saveXML(arqname)
+        open(arqname+'.nfe_dict.py','w').write(pformat(complementarXML.getXMLDict()))
          #validar o xml (pynfe validará agora)
         # try:
            
