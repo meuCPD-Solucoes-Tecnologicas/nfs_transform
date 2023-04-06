@@ -1,8 +1,13 @@
 import datetime
 from decimal import Decimal
 from pprint import pp
-from .map4 import mapCliente, mapEmitente, mapProduto, mapaT
-from .nfe_as_dict import nfe_xml
+try:
+    from .map4 import mapCliente, mapEmitente, mapProduto, mapaT
+    from .nfe_as_dict import nfe_xml
+except ImportError:
+    from map4 import mapCliente, mapEmitente, mapProduto, mapaT
+    from nfe_as_dict import nfe_xml
+
 from pynfe.entidades.fonte_dados import _fonte_dados
 from pynfe.entidades.notafiscal import NotaFiscal
 from pynfe.entidades import *
@@ -13,7 +18,7 @@ from pynfe.processamento.comunicacao import ComunicacaoSefaz
 
 
 HOMOLOGACAO = True
-CERTIFICADO = "CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023(1).p12"
+CERTIFICADO = "LUZ_LED_NOVO.pfx"
 UF = "SP"
 CODIGOS_ESTADOS_T = {v: k for k, v in CODIGOS_ESTADOS.items()}
 
@@ -121,20 +126,20 @@ produto = dict(
     valor_tributos_aprox=''
 )
 
-
+# IMPOSTOS
 imposto = nfe_xml['det']["imposto"]["ICMS"]["ICMS00"]
 icms = dict(
     icms_modalidade=imposto.get('CST'),
-    icms_aliquota=imposto.get('pICMS'),
-    icms_valor=imposto.get('vICMS'),
-    fcp_base_calculo=imposto.get('vBCFCP'),
+    icms_aliquota=Decimal(imposto.get('pICMS')),
+    icms_valor=Decimal(imposto.get('vICMS')),
+    # fcp_base_calculo=Decimal(imposto.get('vBCFCP')),
     icms_st_percentual_reducao_bc=imposto.get('pRedBCST'),
-    icms_st_valor_base_calculo=imposto.get('vBCST'),
+    # icms_st_valor_base_calculo=Decimal(imposto.get('vBCST')),
     icms_st_aliquota=imposto.get('pICMSST'),
-    icms_st_valor=imposto.get('vICMSST'),
-    fcp_st_base_calculo=imposto.get('vBCFCPST'),
-    icms_valor_base_calculo=imposto.get('vBC'),
-    icms_desonerado=imposto.get('vICMSDeson'),
+    # icms_st_valor=Decimal(imposto.get('vICMSST')),
+    # fcp_st_base_calculo=Decimal(imposto.get('vBCFCPST')),
+    icms_valor_base_calculo=Decimal(imposto.get('vBC')),
+    # icms_desonerado=Decimal(imposto.get('vICMSDeson')),
     icms_origem=imposto.get('orig'),
     icms_modalidade_determinacao_bc=imposto.get('modBC'),
     icms_st_modalidade_determinacao_bc=imposto.get('modBCST')
@@ -150,18 +155,18 @@ ipi = dict(
 nfe_confins = nfe_xml['det']["imposto"]['COFINS']["COFINSOutr"]
 confins = dict(
     cofins_modalidade=nfe_confins.get('CST'),
-    cofins_valor_base_calculo=nfe_confins.get('vBC'),
+    cofins_valor_base_calculo=Decimal(nfe_confins.get('vBC')),
+    cofins_valor=Decimal(nfe_confins.get('vCOFINS')),
     cofins_aliquota_percentual=nfe_confins.get('pCOFINS'),
-    cofins_valor=nfe_confins.get('vCOFINS'),
 )
 
 nfe_pis = nfe_xml['det']["imposto"]['PIS']["PISOutr"]
 pis = dict(
 
     pis_modalidade=nfe_pis["CST"],
-    pis_valor_base_calculo=nfe_pis["vBC"],
+    pis_valor_base_calculo=Decimal(nfe_pis["vBC"]),
     pis_aliquota_percentual=nfe_pis["pPIS"],
-    pis_valor=nfe_pis["vPIS"],
+    pis_valor=Decimal(nfe_pis["vPIS"]),
 )
 
 nfe_total = nfe_xml['total']["ICMSTot"]
@@ -253,7 +258,11 @@ nota_fiscal_Pynfe.adicionar_nota_fiscal_referenciada(
 )
 nota_fiscal_Pynfe.adicionar_produto_servico(
     **produto,
-    **total
+    **total,
+    **icms,
+    **ipi,
+    **confins,
+    **pis
 )
 nota_fiscal_Pynfe.adicionar_transporte_volume(
     peso_liquido=nfe_xml["transp"]["vol"]["pesoL"],
