@@ -18,7 +18,7 @@ def main(argv):
         if (arg.startswith("-")):
             args_dest.append(arg)
             nextarg += 1
-    breakpoint()
+    
     # definição de variaveis pasta de nfs originais e nfs complementares (geradas)
     sourceFolder = os.path.relpath(argv[nextarg])
     targetFolder = os.path.relpath(argv[nextarg+1])
@@ -66,7 +66,7 @@ def main(argv):
         #salva dict original
         with open("NFS/Dicts_original/"+xmlFile+".py", 'w+') as fd:
             fd.write("nfe_dict="+pformat(originalXML.getXMLDict())+'\n') 
-        breakpoint()
+        
         # Referencia da complementar na nf original
 
         # xml_dict = complementarXML.getXMLDict()
@@ -361,7 +361,7 @@ def main(argv):
         open(arqname+'.nfe_dict.py',
              'w').write(pformat(complementarXML.getXMLDict()))
         # processo de envio
-        breakpoint()
+        
         if ("--envio-producao" in args_dest or "--envprod" in args_dest):
             pdriver.configura(
                 caminho_certificado="./NFS/certificados/CERTIFICADO_LUZ_LED_COMERCIO_ONLINE_VENCE_13.05.2023.p12",
@@ -381,7 +381,7 @@ def main(argv):
             # Envia a NFe para a SEFAZ HOMOLOGACAO
             xmlassinado = pdriver.converte_para_pynfe_XML_assinado(dicthomo)
             chaveretornada = pdriver.autorização(xmlassinado)
-            breakpoint()
+            
             pdriver.consulta_recibo(chaveretornada)
 
         if ("--envio-homologacao" in args_dest or "--envhom" in args_dest):
@@ -405,7 +405,7 @@ def main(argv):
             # Envia a NFe para a SEFAZ HOMOLOGACAO
             xmlassinado = pdriver.converte_para_pynfe_XML_assinado(dicthomo)
             chaveretornada =pdriver.autorização(xmlassinado)
-            breakpoint()
+            
             pdriver.consulta_recibo(chaveretornada)
 
         
