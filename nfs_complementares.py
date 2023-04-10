@@ -43,7 +43,7 @@ def main(argv):
 
 
     print("Transformando Complementares:")
-    nNFE=2708
+    nNFE=2820
     for xmlFile in xmlFiles:
         originalXML = nfs.XMLPY(open(os.path.join(sourceFolder,xmlFile),'r').read())
         complementarXML = nfs.XMLPY(open(os.path.join(baseFOlder,"base.xml"),'r').read())
@@ -288,15 +288,15 @@ def main(argv):
        
         #####################################################################################
         print(complementarXML.getXMLDict()["NFe"]["infNFe"]["@Id"])
-        arqname = os.path.join(targetFolder,xmlFile.split("-")[0].replace(" ","")+"-COMPLEMENTAR-"+complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"]+'.xml')
+        arqname = os.path.join(targetFolder,"COMPLEMENTAR-"+complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"]+'.xml')
         complementarXML.saveXML(arqname)
         open(arqname+'.nfe_dict.py','w').write(pformat(complementarXML.getXMLDict()))
         #processo de envio
 
         pdriver.configura(
             caminho_certificado="./NFS/certificados/CERTIFICADO_LUZ_LED_COMERCIO_ONLINE_VENCE_13.05.2023.p12",
-            senha_certificado="123456",
-            ambiente_homologacao=True,
+            senha_certificado="123456",c
+            ambiente_homologacao=False,
             uf="SP",
             gera_log=True
         )
@@ -315,6 +315,7 @@ def main(argv):
         chaveretornada =pdriver.autorização(xmlassinado)
         breakpoint()
         pdriver.consulta_recibo(chaveretornada)
+
         
 
 
