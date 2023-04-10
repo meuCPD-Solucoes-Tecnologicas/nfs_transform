@@ -22,6 +22,7 @@ CERTIFICADO = "CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12"
 UF = "SP"
 CODIGOS_ESTADOS_T = {v: k for k, v in CODIGOS_ESTADOS.items()}
 PASTA_LOG = 'log'
+IGNORA_HOMOLOGACAO_WARNING: bool
 
 con: ComunicacaoSefaz
 log: bool
@@ -32,12 +33,15 @@ def configura(
         senha_certificado: str,
         ambiente_homologacao=True,
         uf='SP',
-        gera_log=False
+        gera_log=False,
+        ignora_homologacao_warning=False
 ):
     global HOMOLOGACAO
     global con
     global log
+    global IGNORA_HOMOLOGACAO_WARNING
 
+    IGNORA_HOMOLOGACAO_WARNING = ignora_homologacao_warning
     log = gera_log
     con = ComunicacaoSefaz(
         uf,
@@ -56,6 +60,8 @@ def _teste_configurado():
         raise Exception('con não configurados')
     if (log is None):
         raise Exception('log não configurados')
+    if (IGNORA_HOMOLOGACAO_WARNING is None):
+        raise Exception('IGNORA_HOMOLOGACAO_WARNING não configurados')
 
 
 def converte_para_pynfe_XML_assinado(nfe_dict: dict):
@@ -328,7 +334,7 @@ def autorização(xml_assinado):
                etree.tostring(xml_assinado, encoding='unicode'))  # type: ignore
 
     # envio
-    if not HOMOLOGACAO:
+    if not IGNORA_HOMOLOGACAO_WARNING and not HOMOLOGACAO :
         input('ENVIO DE NOTA FISCAL EM PRODUÇÃO, CONTINUAR? (SIM)')
 
     envio = con.autorizacao(modelo='nfe', nota_fiscal=xml_assinado)
