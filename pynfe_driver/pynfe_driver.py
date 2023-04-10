@@ -13,12 +13,13 @@ from pynfe.processamento.serializacao import SerializacaoXML
 from pynfe.utils.flags import CODIGOS_ESTADOS
 from pynfe.processamento.assinatura import AssinaturaA1
 from pynfe.processamento.comunicacao import ComunicacaoSefaz
+import os
 
 
 from lxml import etree
 
 HOMOLOGACAO: bool
-CERTIFICADO = "CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12"
+CERTIFICADO:str
 UF = "SP"
 CODIGOS_ESTADOS_T = {v: k for k, v in CODIGOS_ESTADOS.items()}
 PASTA_LOG = 'log'
@@ -40,6 +41,14 @@ def configura(
     global con
     global log
     global IGNORA_HOMOLOGACAO_WARNING
+    global CERTIFICADO
+    
+    #os file exists
+    if not os.path.exists(caminho_certificado):
+        raise Exception('Certificado não encontrado')
+    
+    CERTIFICADO = caminho_certificado
+
 
     IGNORA_HOMOLOGACAO_WARNING = ignora_homologacao_warning
     log = gera_log
@@ -64,8 +73,9 @@ def _teste_configurado():
         raise Exception('IGNORA_HOMOLOGACAO_WARNING não configurados')
 
 
-def converte_para_pynfe_XML_assinado(nfe_dict: dict):
+def converte_para_pynfe_XML_assinado(nfe_dict: dict)->etree.Element:
     _teste_configurado()
+    nfe_dict = nfe_dict['NFe']['infNFe']
     nfe_emit: dict = nfe_dict["emit"]
     _emitente = dict(
         cnae_fiscal=nfe_emit.get(mapEmitente("cnae_fiscal")),
@@ -241,15 +251,7 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict):
 
     )
 
-    nfe_pagamento = nfe_dict['pag']
-
-    pagamento = dict(
-
-        pagamento_tipo=nfe_pagamento["detPag"]["tPag"],
-        pagamento_valor=nfe_pagamento["detPag"]["vPag"],
-
-    )
-
+   
     nfe_resp_tec = nfe_dict['infRespTec']
 
     responsavel_tecnico = dict(
@@ -288,11 +290,13 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict):
         indicador_presencial=nota['indPres'],
         processo_emissao=nota['procEmi'],
         transporte_modalidade_frete=nfe_dict['transp']["modFrete"],
+        tipo_pagamento=nfe_dict['pag']["detPag"]["tPag"]
     )
     nota_fiscal_Pynfe = NotaFiscal(
         **_nota_fiscal,
         emitente=Emitente(**_emitente),
         cliente=Cliente(**_cliente),
+
     )
     nota_fiscal_Pynfe.adicionar_nota_fiscal_referenciada(
         **nfe_referenciada
@@ -325,7 +329,6 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict):
 
     return xml
 
-
 def autorização(xml_assinado):
     """recebe a xml assinada e a comunicação sefaz e retorna o "envio" result do pynfe"""
     _teste_configurado()
@@ -345,12 +348,13 @@ def autorização(xml_assinado):
         encoding='unicode')  # type: ignore
     )
 
-    c = envio[2].iter()
-    next(c)
-    infNfe = next(c)
-    chave_da_nota_enviada = infNfe.values()[1].replace("NFe", '')
 
-    return envio
+    #pega
+    recibo = envio[1].text
+    pos_chave_recibo = recibo.find('<nRec>')+6
+    chave_recibo = recibo[pos_chave_recibo:pos_chave_recibo+15]
+    
+    return chave_recibo
 
 
 def consulta_recibo(chave):

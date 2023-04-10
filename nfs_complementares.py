@@ -4,6 +4,9 @@ from pprint import pformat
 from pyNFS import NFS as nfs
 from datetime import datetime
 from pytz import timezone
+from pynfe_driver import pynfe_driver as pdriver
+
+
 def main(argv):
 
 
@@ -288,13 +291,37 @@ def main(argv):
         arqname = os.path.join(targetFolder,xmlFile.split("-")[0].replace(" ","")+"-COMPLEMENTAR-"+complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"]+'.xml')
         complementarXML.saveXML(arqname)
         open(arqname+'.nfe_dict.py','w').write(pformat(complementarXML.getXMLDict()))
-         #validar o xml (pynfe validará agora)
-        # try:
-           
-        #     complementarXML.validate_with_xsd(os.path.relpath("./tests/xsds/nfe_v4.00.xsd"),os.path.relpath(arqname))
-        #     print(str(arqname)+"- Success")
-        # except Exception as e:
-        #     print(str(arqname)+"- ERRO NA VALIDACAO: "+str(e))
+        #processo de envio
+
+        pdriver.configura(
+            caminho_certificado="./NFS/certificados/CERTIFICADO_LUZ_LED_COMERCIO_ONLINE_VENCE_13.05.2023.p12",
+            senha_certificado="123456",
+            ambiente_homologacao=True,
+            uf="SP",
+            gera_log=True
+        )
+
+        breakpoint()
+        pdriver._teste_configurado() # Verifica se o ambiente está configurado corretamente
+
+        dicthomo = complementarXML.getXMLDict()
+
+        #altera xnome para literal "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
+        dicthomo["NFe"]["infNFe"]["dest"]["xNome"] = "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
+        
+
+        # Envia a NFe para a SEFAZ HOMOLOGACAO
+        xmlassinado = pdriver.converte_para_pynfe_XML_assinado(dicthomo)
+        chaveretornada =pdriver.autorização(xmlassinado)
+        breakpoint()
+        pdriver.consulta_recibo(chaveretornada)
+        
+
+
+    
+
+        
+        
             
 if __name__ == '__main__':
     main(sys.argv[1:])
