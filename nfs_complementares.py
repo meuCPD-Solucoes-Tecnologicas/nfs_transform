@@ -64,6 +64,8 @@ def main(argv):
             open(os.path.join(baseFOlder, "base.xml"), 'r').read())
         #####################################################################################
         #salva dict original
+        if not os.path.exists("NFS/Dicts_original"):
+            os.makedirs("NFS/Dicts_original")
         with open("NFS/Dicts_original/"+xmlFile+".py", 'w+') as fd:
             fd.write("nfe_dict="+pformat(originalXML.getXMLDict())+'\n') 
         
