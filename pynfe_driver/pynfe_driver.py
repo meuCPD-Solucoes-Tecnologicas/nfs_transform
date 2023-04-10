@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from decimal import Decimal
 from pprint import pp
 try:
@@ -17,13 +17,45 @@ from pynfe.processamento.assinatura import AssinaturaA1
 from pynfe.processamento.comunicacao import ComunicacaoSefaz
 
 
-HOMOLOGACAO = not True
+from lxml import etree
+
+HOMOLOGACAO: bool
 CERTIFICADO = "CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12"
 UF = "SP"
 CODIGOS_ESTADOS_T = {v: k for k, v in CODIGOS_ESTADOS.items()}
-con = ComunicacaoSefaz('SP', CERTIFICADO, '123456', HOMOLOGACAO)
+PASTA_LOG = 'log'
 
-def main():
+con:ComunicacaoSefaz
+log: bool
+
+def configura(
+        caminho_certificado: str,
+        senha_certificado: str,
+        ambiente_homologacao=True,
+        uf='SP',
+        gera_log=False
+):
+    global HOMOLOGACAO
+    global con
+    global log
+
+    log = gera_log
+    con = ComunicacaoSefaz(
+        uf,
+        caminho_certificado,
+        senha_certificado,
+        ambiente_homologacao
+    )
+    HOMOLOGACAO = ambiente_homologacao
+    # return 
+
+def _teste_configurado():
+    if (HOMOLOGACAO is None): raise Exception('HOMOLOGACAO não configurados')
+    if (con is None): raise Exception('con não configurados')
+    if (log is None): raise Exception('log não configurados')
+
+def converte_para_pynfe_XML_assinado(nfe_dict: dict):
+    _teste_configurado()
     nfe_emit: dict = nfe_xml.get("emit")
     _emitente = dict(
         cnae_fiscal=nfe_emit.get(mapEmitente("cnae_fiscal")),
@@ -54,7 +86,8 @@ def main():
         endereco_telefone=nfe_emit.get("enderEmit", {}).get(
             mapEmitente("endereco_telefone")
         ),
-        endereco_uf=nfe_emit.get("enderEmit", {}).get(mapEmitente("endereco_uf")),
+        endereco_uf=nfe_emit.get("enderEmit", {}).get(
+            mapEmitente("endereco_uf")),
         inscricao_estadual=nfe_emit.get(mapEmitente("inscricao_estadual")),
         inscricao_estadual_subst_tributaria=nfe_emit.get(
             mapEmitente("inscricao_estadual_subst_tributaria")
@@ -64,41 +97,41 @@ def main():
         razao_social=nfe_emit.get(mapEmitente("razao_social")),
     )
 
-
     nfe_cliente: dict = nfe_xml.get("dest")
     _cliente = dict(
-        email=nfe_cliente.get(mapCliente("email"),""),
+        email=nfe_cliente.get(mapCliente("email"), ""),
         endereco_bairro=nfe_cliente.get("enderDest", {}).get(
-            mapCliente("endereco_bairro"),""),
+            mapCliente("endereco_bairro"), ""),
         endereco_cep=nfe_cliente.get("enderDest", {}).get(
-            mapCliente("endereco_cep"),""),
+            mapCliente("endereco_cep"), ""),
         endereco_cod_municipio=nfe_cliente.get("enderDest", {}).get(
-            mapCliente("endereco_cod_municipio"),""
+            mapCliente("endereco_cod_municipio"), ""
         ),
         endereco_complemento=nfe_cliente.get("enderDest", {}).get(
-            mapCliente("endereco_complemento"),""
+            mapCliente("endereco_complemento"), ""
         ),
         endereco_logradouro=nfe_cliente.get("enderDest", {}).get(
-            mapCliente("endereco_logradouro"),""
+            mapCliente("endereco_logradouro"), ""
         ),
         endereco_municipio=nfe_cliente.get("enderDest", {}).get(
-            mapCliente("endereco_municipio"),""
+            mapCliente("endereco_municipio"), ""
         ),
         endereco_numero=nfe_cliente.get("enderDest", {}).get(
-            mapCliente("endereco_numero"),""),
+            mapCliente("endereco_numero"), ""),
         endereco_pais=nfe_cliente.get("enderDest", {}).get(
-            mapCliente("endereco_pais"),""),
+            mapCliente("endereco_pais"), ""),
         endereco_telefone=nfe_cliente.get("enderDest", {}).get(
-            mapCliente("endereco_telefone"),""
+            mapCliente("endereco_telefone"), ""
         ),
         endereco_uf=nfe_cliente.get("enderDest", {}).get(
-            mapCliente("endereco_uf"),""),
-        indicador_ie=int(nfe_cliente.get(mapCliente("indicador_ie"),"")),
+            mapCliente("endereco_uf"), ""),
+        indicador_ie=int(nfe_cliente.get(mapCliente("indicador_ie"), "")),
         # inscricao_estadual=nfe_cliente.get(mapCliente("inscricao_estadual"),""),
-        inscricao_municipal=nfe_cliente.get(mapCliente("inscricao_municipal"),""),
-        inscricao_suframa=nfe_cliente.get(mapCliente("inscricao_suframa"),""),
+        inscricao_municipal=nfe_cliente.get(
+            mapCliente("inscricao_municipal"), ""),
+        inscricao_suframa=nfe_cliente.get(mapCliente("inscricao_suframa"), ""),
 
-        razao_social=nfe_cliente.get(mapCliente("razao_social"),""),
+        razao_social=nfe_cliente.get(mapCliente("razao_social"), ""),
     )
     if nfe_cliente.get("CPF") and not nfe_cliente.get("CNPJ"):
         _cliente['tipo_documento'] = "CPF"
@@ -106,7 +139,6 @@ def main():
     else:
         _cliente['tipo_documento'] = "CNPJ"
         _cliente['numero_documento'] = nfe_cliente.get("CNPJ")
-
 
     nfe_produto = nfe_xml.get("det").get('prod')
 
@@ -199,8 +231,6 @@ def main():
 
     )
 
-
-
     nfe_pagamento = nfe_xml['pag']
 
     pagamento = dict(
@@ -209,7 +239,6 @@ def main():
         pagamento_valor=nfe_pagamento["detPag"]["vPag"],
 
     )
-
 
     nfe_resp_tec = nfe_xml['infRespTec']
 
@@ -272,7 +301,7 @@ def main():
     )
     # vizualiza nota attrs:
     pp({
-        atr:getattr(nota_fiscal_Pynfe,atr)
+        atr: getattr(nota_fiscal_Pynfe, atr)
         for atr in dir(nota_fiscal_Pynfe)
         if not atr.startswith("_")
     })
@@ -284,37 +313,49 @@ def main():
     a1 = AssinaturaA1(CERTIFICADO, '123456')
     xml = a1.assinar(nfe)
 
-    from lxml import etree
-    open('notagerada.xml','w').write(etree.tostring( xml,encoding='unicode'))
+    return xml
+    
+
+
+def autorização(xml_assinado):
+    """recebe a xml assinada e a comunicação sefaz e retorna o "envio" result do pynfe"""
+    _teste_configurado()
+
+    _salva_log('notagerada'+'chave',etree.tostring(xml_assinado, encoding='unicode'))
 
     # envio
+    if not HOMOLOGACAO:
+        input('ENVIO DE NOTA FISCAL EM PRODUÇÃO, CONTINUAR? (SIM)')
+
+    envio = con.autorizacao(modelo='nfe', nota_fiscal=xml_assinado)
+
+    _salva_log('envio[1]',envio[1].text)
+    _salva_log('envio[2]',etree.tostring(envio[2], encoding='unicode'))
     
-    envio = con.autorizacao(modelo='nfe', nota_fiscal=xml)
-    open('envio[1].xml','w').write(envio[1].text)
-    open('envio[2].xml','w').write(etree.tostring(envio[2], encoding='unicode'))
     c = envio[2].iter()
     next(c)
     infNfe = next(c)
-    chave_da_nota_enviada = infNfe.values()[1].replace("NFe",'')
+    chave_da_nota_enviada = infNfe.values()[1].replace("NFe", '')
+
+    return envio
 
 
-def consulta(chave):
-    r = con.consulta_nota(
-        'nfe',
-        chave
-    )
 
-    open('consulta_result.xml','w+').write(r.text)   
+
 def consulta_recibo(chave):
+    _teste_configurado()
     r = con.consulta_recibo(
         'nfe',
         chave
     )
+    _salva_log('consulta_result_'+'chave',r.text)
 
-    open('consulta_result.xml','w+').write(r.text)   
-
+def _salva_log(nome_arq,conteudo:str):
+    formatted_date = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    if log: open(f'log/{nome_arq}_{formatted_date}.xml', 'w+').write(conteudo)
 # main()
-consulta_recibo('351011076380621')
+# última consulta de quinta
+# consulta_recibo('351011076380621')
 
 
 # prod
