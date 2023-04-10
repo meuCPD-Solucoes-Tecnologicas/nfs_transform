@@ -3,10 +3,8 @@ from decimal import Decimal
 from pprint import pp
 try:
     from .map4 import mapCliente, mapEmitente, mapProduto, mapaT
-    from .nfe_as_dict import nfe_xml
 except ImportError:
     from map4 import mapCliente, mapEmitente, mapProduto, mapaT
-    from nfe_as_dict import nfe_xml
 
 from pynfe.entidades.fonte_dados import _fonte_dados
 from pynfe.entidades.notafiscal import NotaFiscal
@@ -25,8 +23,9 @@ UF = "SP"
 CODIGOS_ESTADOS_T = {v: k for k, v in CODIGOS_ESTADOS.items()}
 PASTA_LOG = 'log'
 
-con:ComunicacaoSefaz
+con: ComunicacaoSefaz
 log: bool
+
 
 def configura(
         caminho_certificado: str,
@@ -47,16 +46,21 @@ def configura(
         ambiente_homologacao
     )
     HOMOLOGACAO = ambiente_homologacao
-    # return 
+    # return
+
 
 def _teste_configurado():
-    if (HOMOLOGACAO is None): raise Exception('HOMOLOGACAO não configurados')
-    if (con is None): raise Exception('con não configurados')
-    if (log is None): raise Exception('log não configurados')
+    if (HOMOLOGACAO is None):
+        raise Exception('HOMOLOGACAO não configurados')
+    if (con is None):
+        raise Exception('con não configurados')
+    if (log is None):
+        raise Exception('log não configurados')
+
 
 def converte_para_pynfe_XML_assinado(nfe_dict: dict):
     _teste_configurado()
-    nfe_emit: dict = nfe_xml.get("emit")
+    nfe_emit: dict = nfe_dict["emit"]
     _emitente = dict(
         cnae_fiscal=nfe_emit.get(mapEmitente("cnae_fiscal")),
         cnpj=nfe_emit.get(mapEmitente("cnpj")),
@@ -97,7 +101,7 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict):
         razao_social=nfe_emit.get(mapEmitente("razao_social")),
     )
 
-    nfe_cliente: dict = nfe_xml.get("dest")
+    nfe_cliente: dict = nfe_dict["dest"]
     _cliente = dict(
         email=nfe_cliente.get(mapCliente("email"), ""),
         endereco_bairro=nfe_cliente.get("enderDest", {}).get(
@@ -140,7 +144,7 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict):
         _cliente['tipo_documento'] = "CNPJ"
         _cliente['numero_documento'] = nfe_cliente.get("CNPJ")
 
-    nfe_produto = nfe_xml.get("det").get('prod')
+    nfe_produto = nfe_dict["det"].get('prod')
 
     produto = dict(
         codigo=nfe_produto.get("cProd"),
@@ -161,7 +165,7 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict):
     )
 
     # IMPOSTOS
-    imposto = nfe_xml['det']["imposto"]["ICMS"]["ICMS00"]
+    imposto = nfe_dict['det']["imposto"]["ICMS"]["ICMS00"]
     icms = dict(
         icms_modalidade=imposto.get('CST'),
         icms_aliquota=Decimal(imposto.get('pICMS')),
@@ -179,14 +183,14 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict):
         icms_st_modalidade_determinacao_bc=imposto.get('modBCST')
     )
 
-    nfe_ipi = nfe_xml['det']["imposto"]["IPI"]
+    nfe_ipi = nfe_dict['det']["imposto"]["IPI"]
 
     ipi = dict(
         ipi_classe_enquadramento=nfe_ipi.get('cEnq'),
         ipi_codigo_enquadramento=nfe_ipi.get('CST')
     )
 
-    nfe_confins = nfe_xml['det']["imposto"]['COFINS']["COFINSOutr"]
+    nfe_confins = nfe_dict['det']["imposto"]['COFINS']["COFINSOutr"]
     confins = dict(
         cofins_modalidade=nfe_confins.get('CST'),
         cofins_valor_base_calculo=Decimal(nfe_confins.get('vBC')),
@@ -194,7 +198,7 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict):
         cofins_aliquota_percentual=Decimal(nfe_confins.get('pCOFINS')),
     )
 
-    nfe_pis = nfe_xml['det']["imposto"]['PIS']["PISOutr"]
+    nfe_pis = nfe_dict['det']["imposto"]['PIS']["PISOutr"]
     pis = dict(
 
         pis_modalidade=nfe_pis["CST"],
@@ -203,7 +207,7 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict):
         pis_valor=Decimal(nfe_pis["vPIS"]),
     )
 
-    nfe_total = nfe_xml['total']["ICMSTot"]
+    nfe_total = nfe_dict['total']["ICMSTot"]
     total = dict(
         totais_icms_base_calculo=Decimal(nfe_total["vBC"]),
         totais_icms_total=Decimal(nfe_total["vICMS"]),
@@ -231,7 +235,7 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict):
 
     )
 
-    nfe_pagamento = nfe_xml['pag']
+    nfe_pagamento = nfe_dict['pag']
 
     pagamento = dict(
 
@@ -240,7 +244,7 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict):
 
     )
 
-    nfe_resp_tec = nfe_xml['infRespTec']
+    nfe_resp_tec = nfe_dict['infRespTec']
 
     responsavel_tecnico = dict(
 
@@ -252,11 +256,11 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict):
 
     )
 
-    nfe_ref = nfe_xml['ide']['NFref']
+    nfe_ref = nfe_dict['ide']['NFref']
     nfe_referenciada = dict(
         chave_acesso=nfe_ref['refNFe']
     )
-    nota = nfe_xml['ide']
+    nota = nfe_dict['ide']
 
     _nota_fiscal = dict(
         uf=CODIGOS_ESTADOS_T[nota['cUF']],
@@ -265,8 +269,8 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict):
         modelo=int(nota['mod']),
         serie=nota['serie'],
         numero_nf=nota['nNF'],
-        data_emissao=datetime.datetime.now(),
-        data_saida_entrada=datetime.datetime.now(),
+        data_emissao=datetime.now(),
+        data_saida_entrada=datetime.now(),
         tipo_documento=nota['tpNF'],
         indicador_destino=nota['idDest'],
         municipio=nota['cMunFG'],
@@ -277,7 +281,7 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict):
         cliente_final=nota['indFinal'],
         indicador_presencial=nota['indPres'],
         processo_emissao=nota['procEmi'],
-        transporte_modalidade_frete=nfe_xml['transp']["modFrete"],
+        transporte_modalidade_frete=nfe_dict['transp']["modFrete"],
     )
     nota_fiscal_Pynfe = NotaFiscal(
         **_nota_fiscal,
@@ -296,8 +300,8 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict):
         **pis
     )
     nota_fiscal_Pynfe.adicionar_transporte_volume(
-        peso_liquido=nfe_xml["transp"]["vol"]["pesoL"],
-        peso_bruto=nfe_xml["transp"]["vol"]["pesoB"],
+        peso_liquido=nfe_dict["transp"]["vol"]["pesoL"],
+        peso_bruto=nfe_dict["transp"]["vol"]["pesoB"],
     )
     # vizualiza nota attrs:
     pp({
@@ -314,14 +318,14 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict):
     xml = a1.assinar(nfe)
 
     return xml
-    
 
 
 def autorização(xml_assinado):
     """recebe a xml assinada e a comunicação sefaz e retorna o "envio" result do pynfe"""
     _teste_configurado()
 
-    _salva_log('notagerada'+'chave',etree.tostring(xml_assinado, encoding='unicode'))
+    _salva_log('notagerada'+'chave',
+               etree.tostring(xml_assinado, encoding='unicode'))  # type: ignore
 
     # envio
     if not HOMOLOGACAO:
@@ -329,9 +333,12 @@ def autorização(xml_assinado):
 
     envio = con.autorizacao(modelo='nfe', nota_fiscal=xml_assinado)
 
-    _salva_log('envio[1]',envio[1].text)
-    _salva_log('envio[2]',etree.tostring(envio[2], encoding='unicode'))
-    
+    _salva_log('envio[1]', envio[1].text)
+    _salva_log('envio[2]', etree.tostring(
+        envio[2],
+        encoding='unicode')  # type: ignore
+    )
+
     c = envio[2].iter()
     next(c)
     infNfe = next(c)
@@ -340,19 +347,19 @@ def autorização(xml_assinado):
     return envio
 
 
-
-
 def consulta_recibo(chave):
     _teste_configurado()
     r = con.consulta_recibo(
         'nfe',
         chave
     )
-    _salva_log('consulta_result_'+'chave',r.text)
+    _salva_log('consulta_result_'+'chave', r.text)
 
-def _salva_log(nome_arq,conteudo:str):
+
+def _salva_log(nome_arq, conteudo: str):
     formatted_date = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-    if log: open(f'log/{nome_arq}_{formatted_date}.xml', 'w+').write(conteudo)
+    if log:
+        open(f'log/{nome_arq}_{formatted_date}.xml', 'w+').write(conteudo)
 # main()
 # última consulta de quinta
 # consulta_recibo('351011076380621')
