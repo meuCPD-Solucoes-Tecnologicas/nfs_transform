@@ -104,11 +104,17 @@ def main(argv):
                                    "nfeProc"]['NFe']['infNFe']['ide']['cNF']
         # complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["cDV"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['cDV']
 
+        #iterando em det
+        for item in complementarXML.getXMLDict()["NFe"]["infNFe"]["det"]:
+            ...
         # Complemento de ICMS
         xml_dict = complementarXML.getXMLDict()
         # save original value on file
         with open(os.path.join(targetFolder, "originalvalue.py"), 'w+') as fd:
             fd.write(str(complementarXML.getXMLDict())+'\n')
+        
+        ####ALTERANDO CAMPOS det #########################################################
+        
         try:
             # print(originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']['prod'])
             xml_dict['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"] = originalXML.getXMLDict()[
@@ -146,6 +152,7 @@ def main(argv):
                 "0.00")
         except:
             print("VBC EM LISTA")
+            
             xml_dict['NFe']['infNFe']["det"][0]["imposto"]["COFINS"]["COFINSOutr"]["vBC"] = str(
                 "0.00")
             xml_dict['NFe']['infNFe']["det"][0]["imposto"]["COFINS"]["COFINSOutr"]["pCOFINS"] = str(
@@ -200,6 +207,8 @@ def main(argv):
                 xml_dict['NFe']['infNFe']["det"][0]["prod"]["CFOP"] = '6106'
 
         complementarXML.setXMLDict(xml_dict)
+
+        ############################################################################################
 
         # emit
 
