@@ -6,6 +6,8 @@ from pyNFS import NFS as nfs
 from datetime import datetime
 from pytz import timezone
 from pynfe_driver import pynfe_driver as pdriver
+from decimal import Decimal
+from addict import Dict
 
 
 def main(argv):
@@ -18,7 +20,7 @@ def main(argv):
         if (arg.startswith("-")):
             args_dest.append(arg)
             nextarg += 1
-    
+
     # definição de variaveis pasta de nfs originais e nfs complementares (geradas)
     sourceFolder = os.path.relpath(argv[nextarg])
     targetFolder = os.path.relpath(argv[nextarg+1])
@@ -54,21 +56,17 @@ def main(argv):
     nNFE = 2820
     for xmlFile in xmlFiles:
 
-        
-
-        
-
         originalXML = nfs.XMLPY(
             open(os.path.join(sourceFolder, xmlFile), 'r').read())
         complementarXML = nfs.XMLPY(
             open(os.path.join(baseFOlder, "base.xml"), 'r').read())
         #####################################################################################
-        #salva dict original
+        # salva dict original
         if not os.path.exists("NFS/Dicts_original"):
             os.makedirs("NFS/Dicts_original")
         with open("NFS/Dicts_original/"+xmlFile+".py", 'w+') as fd:
-            fd.write("nfe_dict="+pformat(originalXML.getXMLDict())+'\n') 
-        
+            fd.write("nfe_dict="+pformat(originalXML.getXMLDict())+'\n')
+
         # Referencia da complementar na nf original
 
         # xml_dict = complementarXML.getXMLDict()
@@ -103,111 +101,86 @@ def main(argv):
 
         xml_dict = complementarXML.getXMLDict()
         complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["cNF"] = originalXML.getXMLDict()[
-                                   "nfeProc"]['NFe']['infNFe']['ide']['cNF']
-        # complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["cDV"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['cDV']
+            "nfeProc"]['NFe']['infNFe']['ide']['cNF']
 
-        #iterando em det
-        for item in complementarXML.getXMLDict()["NFe"]["infNFe"]["det"]:
-            ...
-        # Complemento de ICMS
+        # iterando em det
         xml_dict = complementarXML.getXMLDict()
+
+        # Complemento de ICMS
         # save original value on file
         with open(os.path.join(targetFolder, "originalvalue.py"), 'w+') as fd:
             fd.write(str(complementarXML.getXMLDict())+'\n')
-        
-        ####ALTERANDO CAMPOS det #########################################################
-        
-        try:
-            # print(originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']['prod'])
-            xml_dict['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"] = originalXML.getXMLDict()[
-                                                                                                          "nfeProc"]['NFe']['infNFe']['det']['prod']['vProd']
-            xml_dict['NFe']['infNFe']["total"]["ICMSTot"]["vBC"] = originalXML.getXMLDict(
-            )["nfeProc"]['NFe']['infNFe']['det']['prod']['vProd']
-            xml_dict['NFe']['infNFe']["det"]["prod"]["NCM"] = originalXML.getXMLDict(
-            )["nfeProc"]['NFe']['infNFe']['det']['prod']['NCM']
-        except:
-            # print(originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det'][0]['prod'])
-            print("VPROD EM LISTA")
-            xml_dict['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"] = originalXML.getXMLDict(
-            )["nfeProc"]['NFe']['infNFe']['det'][0]['prod']['vProd']
-            xml_dict['NFe']['infNFe']["total"]["ICMSTot"]["vBC"] = originalXML.getXMLDict(
-            )["nfeProc"]['NFe']['infNFe']['det'][0]['prod']['vProd']
-            xml_dict['NFe']['infNFe']["det"]["prod"]["NCM"] = originalXML.getXMLDict(
-            )["nfeProc"]['NFe']['infNFe']['det'][0]['prod']['NCM']
 
-        complementarXML.setXMLDict(xml_dict)
-
-        #  Complemento de CONFINS
-        xml_dict = complementarXML.getXMLDict()
-        try:
-            xml_dict['NFe']['infNFe']["det"]["imposto"]["COFINS"]["COFINSOutr"]["vBC"] = str(
-                "0.00")
-            xml_dict['NFe']['infNFe']["det"]["imposto"]["COFINS"]["COFINSOutr"]["pCOFINS"] = str(
-                "0.00")
-            xml_dict['NFe']['infNFe']["det"]["imposto"]["COFINS"]["COFINSOutr"]["vCOFINS"] = str(
-                "0.00")
-            xml_dict['NFe']['infNFe']["det"]["imposto"]["PIS"]["PISOutr"]["vBC"] = str(
-                "0.00")
-            xml_dict['NFe']['infNFe']["det"]["imposto"]["PIS"]["PISOutr"]["pPIS"] = str(
-                "0.00")
-            xml_dict['NFe']['infNFe']["det"]["imposto"]["PIS"]["PISOutr"]["vPIS"] = str(
-                "0.00")
-        except:
-            print("VBC EM LISTA")
-            
-            xml_dict['NFe']['infNFe']["det"][0]["imposto"]["COFINS"]["COFINSOutr"]["vBC"] = str(
-                "0.00")
-            xml_dict['NFe']['infNFe']["det"][0]["imposto"]["COFINS"]["COFINSOutr"]["pCOFINS"] = str(
-                "0.00")
-            xml_dict['NFe']['infNFe']["det"][0]["imposto"]["COFINS"]["COFINSOutr"]["vCOFINS"] = str(
-                "0.00")
-            xml_dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["vBC"] = str(
-                "0.00")
-            xml_dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["pPIS"] = str(
-                "0.00")
-            xml_dict['NFe']['infNFe']["det"][0]["imposto"]["PIS"]["PISOutr"]["vPIS"] = str(
-                "0.00")
-        complementarXML.setXMLDict(xml_dict)
-
-        # ICMS Total
-        xml_dict = complementarXML.getXMLDict()
-        try:
-            xml_dict['NFe']['infNFe']["total"]["ICMSTot"]["vICMS"] = "{:.2f}".format(round(float(
-                complementarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04, 2))
-            complementarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vICMS"] = "{:.2f}".format(
-                round(float(complementarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04, 2))
-        except Exception as e:
-            print(e)
-            print("ICMS EM LISTA")
-            xml_dict['NFe']['infNFe']["total"]["ICMSTot"]["vICMS"] = "{:.2f}".format(round(float(
-                complementarXML.getXMLDict()['NFe']['infNFe']["det"][0]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04, 2))
-            complementarXML.getXMLDict()['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vICMS"] = "{:.2f}".format(
-                round(float(complementarXML.getXMLDict()['NFe']['infNFe']["det"][0]["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04, 2))
-        complementarXML.setXMLDict(xml_dict)
-
-        #  InfADIC
-        xml_dict = complementarXML.getXMLDict()
+        #### ALTERANDO CAMPOS det #########################################################
 
         valores = {'data-emissao': originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['dhEmi'],
-                 "No_NF": originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['nNF'],
-                 "serie": originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['serie']}
+                   "No_NF": originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['nNF'],
+                   "serie": originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['serie']}
         texto = f"""Conforme artigo 182 IV do RICMS, Nota fiscal complementar de ICMS referente a NF {valores["No_NF"]} da serie {str(valores["serie"]).zfill(2)} de {datetime.strptime(valores["data-emissao"].split("T")[0].replace("-","/"),"%Y/%m/%d").strftime("%d/%m/%Y")}."""
         xml_dict['NFe']['infNFe']["infAdic"]["infCpl"] = texto
         xml_dict['NFe']['infNFe']["ide"]["serie"] = valores['serie']
         xml_dict['NFe']['infNFe']["ide"][
             "natOp"] = f"Complementar de ICMS (Serie {valores['serie']})"
 
-        if (valores['serie'] == '1'):
-            try:
-                xml_dict['NFe']['infNFe']["det"]["prod"]["CFOP"] = '6108'
-            except:
-                xml_dict['NFe']['infNFe']["det"][0]["prod"]["CFOP"] = '6108'
-        elif (valores['serie'] == '2'):
-            try:
-                xml_dict['NFe']['infNFe']["det"]["prod"]["CFOP"] = '6106'
-            except:
-                xml_dict['NFe']['infNFe']["det"][0]["prod"]["CFOP"] = '6106'
+        xml_dict['NFe']['infNFe']['total']['ICMSTot']['vBC'] = 0
 
+        temp_list = []
+        for o_det in originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']:
+            temp_dict = Dict(**xml_dict['NFe']['infNFe']['det'][0])
+
+            temp_dict['@nItem'] = o_det['@nItem']
+
+            temp_dict.imposto.ICMS.ICMS00.vBC = o_det['prod']['vProd']
+            temp_dict.prod.NCM = originalXML.getXMLDict(
+            )["nfeProc"]['NFe']['infNFe']['det'][0]['prod']['NCM']
+
+            # ????? / TODO
+            # xml_dict['NFe']['infNFe'].total.ICMSTot.vBC = originalXML.getXMLDict(
+            # ).nfeProc['NFe']['infNFe']['det'][0]['prod']['vProd']
+            novo_vbc = Decimal(xml_dict['NFe']['infNFe']['total']
+                               ['ICMSTot']['vBC']) + Decimal(o_det['prod']['vProd'])
+            xml_dict['NFe']['infNFe']['total']['ICMSTot']['vBC'] = "{:.2f}".format(
+                novo_vbc)
+
+            #  Complemento de CONFINS
+
+            temp_dict.imposto.COFINS.COFINSOutr.vBC = str(
+                "0.00")
+            temp_dict.imposto.COFINS.COFINSOutr.pCOFINS = str(
+                "0.00")
+            temp_dict.imposto.COFINS.COFINSOutr.vCOFINS = str(
+                "0.00")
+            temp_dict.imposto.PIS.PISOutr.vBC = str(
+                "0.00")
+            temp_dict.imposto.PIS.PISOutr.pPIS = str(
+                "0.00")
+            temp_dict.imposto.PIS.PISOutr.vPIS = str(
+                "0.00")
+
+            # ICMS Total
+            try:
+
+                xml_dict['NFe']['infNFe']['total']['ICMSTot']['vICMS'] += "{:.2f}".format(round(float(
+                    o_det["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04, 2))
+                xml_dict['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vICMS"] = "{:.2f}".format(
+                    round(float(o_det["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04, 2))
+            except KeyError as ke:
+                print(ke)
+            #  InfADIC
+
+            if (valores['serie'] == '1'):
+                temp_dict.prod.CFOP = '6108'
+            elif (valores['serie'] == '2'):
+                temp_dict.prod.CFOP = '6106'
+
+                temp_dict.append(
+                    temp_dict
+                )
+            # ULTIMO DET
+
+            temp_list.append(temp_dict)
+
+        xml_dict['NFe']['infNFe']['det'] = temp_list
         complementarXML.setXMLDict(xml_dict)
 
         ############################################################################################
@@ -259,7 +232,7 @@ def main(argv):
                 """
         xml_dict = complementarXML.getXMLDict()
         xml_dict['NFe']['infNFe']["emit"]["CNPJ"] = originalXML.getXMLDict()[
-                                                                           "nfeProc"]['NFe']['infNFe']['emit']['CNPJ']
+            "nfeProc"]['NFe']['infNFe']['emit']['CNPJ']
         xml_dict['NFe']['infNFe']["emit"]["xNome"] = originalXML.getXMLDict(
         )["nfeProc"]['NFe']['infNFe']['emit']['xNome']
         xml_dict['NFe']['infNFe']["emit"]["enderEmit"]["xLgr"] = originalXML.getXMLDict(
@@ -283,7 +256,7 @@ def main(argv):
         xml_dict['NFe']['infNFe']["emit"]["enderEmit"]["fone"] = originalXML.getXMLDict(
         )["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['fone']
         xml_dict['NFe']['infNFe']["emit"]["IE"] = originalXML.getXMLDict()[
-                                                                         "nfeProc"]['NFe']['infNFe']['emit']['IE']
+            "nfeProc"]['NFe']['infNFe']['emit']['IE']
         # originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['CRT']
         xml_dict['NFe']['infNFe']["emit"]["CRT"] = '3'
 
@@ -330,7 +303,7 @@ def main(argv):
         xml_dict = complementarXML.getXMLDict()
 
         xml_dict['NFe']['infNFe']["dest"]["CPF"] = originalXML.getXMLDict()[
-                                                                          "nfeProc"]['NFe']['infNFe']['dest']['CPF']
+            "nfeProc"]['NFe']['infNFe']['dest']['CPF']
         xml_dict['NFe']['infNFe']["dest"]["xNome"] = originalXML.getXMLDict(
         )["nfeProc"]['NFe']['infNFe']['dest']['xNome']
         xml_dict['NFe']['infNFe']["dest"]["enderDest"]["xLgr"] = originalXML.getXMLDict(
@@ -372,7 +345,7 @@ def main(argv):
         open(arqname+'.nfe_dict.py',
              'w').write(pformat(complementarXML.getXMLDict()))
         # processo de envio
-        
+
         if ("--envio-producao" in args_dest or "--envprod" in args_dest):
             pdriver.configura(
                 caminho_certificado="./NFS/certificados/CERTIFICADO_LUZ_LED_COMERCIO_ONLINE_VENCE_13.05.2023.p12",
@@ -392,40 +365,31 @@ def main(argv):
             # Envia a NFe para a SEFAZ HOMOLOGACAO
             xmlassinado = pdriver.converte_para_pynfe_XML_assinado(dicthomo)
             chaveretornada = pdriver.autorização(xmlassinado)
-            
+
             pdriver.consulta_recibo(chaveretornada)
 
         if ("--envio-homologacao" in args_dest or "--envhom" in args_dest):
             pdriver.configura(
-                caminho_certificado="./NFS/certificados/CERTIFICADO_LUZ_LED_COMERCIO_ONLINE_VENCE_13.05.2023.p12",
+                caminho_certificado="/home/dev/nfs_transform/NFS/certificados/CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12",
                 senha_certificado="123456",
                 ambiente_homologacao=True,
                 uf="SP",
                 gera_log=True
             )
 
-
-            pdriver._teste_configurado() # Verifica se o ambiente está configurado corretamente
+            pdriver._teste_configurado()  # Verifica se o ambiente está configurado corretamente
 
             dicthomo = complementarXML.getXMLDict()
 
-            #altera xnome para literal "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
+            # altera xnome para literal "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
             dicthomo["NFe"]["infNFe"]["dest"]["xNome"] = "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
-            
 
             # Envia a NFe para a SEFAZ HOMOLOGACAO
             xmlassinado = pdriver.converte_para_pynfe_XML_assinado(dicthomo)
-            chaveretornada =pdriver.autorização(xmlassinado)
-            
+            chaveretornada = pdriver.autorização(xmlassinado)
+
             pdriver.consulta_recibo(chaveretornada)
 
-        
 
-
-    
-
-        
-        
-            
 if __name__ == '__main__':
     main(sys.argv[1:])

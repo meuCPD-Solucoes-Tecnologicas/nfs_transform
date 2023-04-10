@@ -12,7 +12,7 @@ class XMLPY:
 
     def __init__(self, xml: str):
         self.xml = xml
-        self.xmldict = xd.parse(self.xml)
+        self.xmldict = xd.parse(self.xml,force_list=('det',))
         
 
     def getXML(self):

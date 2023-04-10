@@ -1,7 +1,7 @@
 #mygnore
 /NFS/Arquivos/*
 /NFS/Originais/*
-# /NFS/Complementares/*
+/NFS/Complementares/*
 /NFS/certificados/
 
 #logs
@@ -156,3 +156,9 @@ dict_que
 dict_que.json
 get_dict.py
 NFS/Complementares/originalvalue.py
+tentativa em prod/
+result.xml
+notagerada.xml
+consulta_result.xml
+NFS/Dicts_original/35220946364058000115550010000001181700960501-nfe.xml.py
+35220946364058000115550010000001181700960501-nfe.xml.py
