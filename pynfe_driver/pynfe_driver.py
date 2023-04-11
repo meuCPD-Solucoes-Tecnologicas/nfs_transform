@@ -258,11 +258,11 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict) -> etree.Element:
     #     peso_bruto=nfe_dict["transp"]["vol"]["pesoB"],
     # )
     # vizualiza nota attrs:
-    pp({
-        atr: getattr(nota_fiscal_Pynfe, atr)
-        for atr in dir(nota_fiscal_Pynfe)
-        if not atr.startswith("_")
-    })
+    # pp({
+    #     atr: getattr(nota_fiscal_Pynfe, atr)
+    #     for atr in dir(nota_fiscal_Pynfe)
+    #     if not atr.startswith("_")
+    # })
     # ENVIA
     serializador = SerializacaoXML(_fonte_dados, homologacao=HOMOLOGACAO)
     nfe = serializador.exportar()
@@ -278,7 +278,12 @@ def autorização(xml_assinado):
     """recebe a xml assinada e a comunicação sefaz e retorna o "envio" result do pynfe"""
     _teste_configurado()
 
-    _salva_log('notagerada'+'chave',
+
+    xml_str = etree.tostring(xml_assinado,encoding='unicode')
+    index_id = xml_str.find("Id=")+7
+
+    chave = xml_str[index_id:index_id+44]
+    _salva_log(chave+'notagerada',
                etree.tostring(xml_assinado, encoding='unicode'))  # type: ignore
 
     # envio
@@ -286,13 +291,12 @@ def autorização(xml_assinado):
         input('ENVIO DE NOTA FISCAL EM PRODUÇÃO, CONTINUAR? (SIM)')
 
     envio = con.autorizacao(modelo='nfe', nota_fiscal=xml_assinado)
-
-    _salva_log('envio[1]', envio[1].text)
-    _salva_log('envio[2]', etree.tostring(
+    
+    _salva_log(chave+'envio[1]', envio[1].text)
+    _salva_log(chave+'envio[2]', etree.tostring(
         envio[2],
         encoding='unicode')  # type: ignore
     )
-
     # pega
     recibo = envio[1].text
     pos_chave_recibo = recibo.find('<nRec>')+6
@@ -301,17 +305,26 @@ def autorização(xml_assinado):
     return chave_recibo
 
 
+def consulta(chave):
+    _teste_configurado()
+    r = con.consulta_nota(
+        'nfe',
+        chave
+    )
+    _salva_log(chave+'consulta_nota_result_', r.text)
+
+
 def consulta_recibo(chave):
     _teste_configurado()
     r = con.consulta_recibo(
         'nfe',
         chave
     )
-    _salva_log('consulta_result_'+'chave', r.text)
+    _salva_log(chave+'consulta_recibo_result_', r.text)
 
 
 def _salva_log(nome_arq, conteudo: str):
-    formatted_date = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    formatted_date = datetime.now().strftime("%Y-%m-%dT%H:%M:%S:%f")
     if log:
         open(f'log/{nome_arq}_{formatted_date}.xml', 'w+').write(conteudo)
 # main()
