@@ -206,7 +206,7 @@ def main(argv):
                 nNFE_serie_2 += 1
 
             temp_list.append(produto_atual)
-        log("Produtos adicionados: "+'\n'.join(temp_list))
+        log("Produtos adicionados: "+'\n'.join(map(pformat,temp_list)))
 
         xml_dict['NFe']['infNFe']['det'] = temp_list
 
