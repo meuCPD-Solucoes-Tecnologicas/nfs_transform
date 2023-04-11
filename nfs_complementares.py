@@ -361,7 +361,9 @@ def main(argv):
             xml_dict['NFe']['infNFe']["dest"]["CPF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['CPF']
         except:
             log("ERRO SCHEMA CPF!")
-            continue
+            xml_dict['NFe']['infNFe']["dest"]["CNPJ"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['CNPJ']
+            log("ERRO SCHEMA IE!")
+            xml_dict['NFe']['infNFe']["dest"]["IE"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['IE']
         xml_dict['NFe']['infNFe']["dest"]["xNome"] = originalXML.getXMLDict(
         )["nfeProc"]['NFe']['infNFe']['dest']['xNome']
         xml_dict['NFe']['infNFe']["dest"]["enderDest"]["xLgr"] = originalXML.getXMLDict(
@@ -384,7 +386,8 @@ def main(argv):
         )["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['xPais']
         xml_dict['NFe']['infNFe']["dest"]["indIEDest"] = originalXML.getXMLDict(
         )["nfeProc"]['NFe']['infNFe']['dest']['indIEDest']
-
+       
+        
         complementarXML.setXMLDict(xml_dict)
 
         # gerar o id da nota

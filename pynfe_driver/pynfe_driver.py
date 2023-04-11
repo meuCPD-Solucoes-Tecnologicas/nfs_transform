@@ -177,7 +177,7 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict) -> etree.Element:
         endereco_uf=nfe_cliente.get("enderDest", {}).get(
             mapCliente("endereco_uf"), ""),
         indicador_ie=int(nfe_cliente.get(mapCliente("indicador_ie"), "")),
-        # inscricao_estadual=nfe_cliente.get(mapCliente("inscricao_estadual"),""),
+        inscricao_estadual=nfe_cliente.get(mapCliente("inscricao_estadual"),""),
         inscricao_municipal=nfe_cliente.get(
             mapCliente("inscricao_municipal"), ""),
         inscricao_suframa=nfe_cliente.get(mapCliente("inscricao_suframa"), ""),
