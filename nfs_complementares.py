@@ -16,11 +16,17 @@ def main(argv):
     nextarg = 0
 
     # pega processo
+    arg_numeros = [0, 0]
     args_dest = []
     for arg in argv:
         if (arg.startswith("-")):
             args_dest.append(arg)
             nextarg += 1
+        try:
+            if (isinstance(int(arg), int)):
+                arg_numeros[0 if arg_numeros[0] == 0 else 1] = arg
+        except ValueError:
+            print('arg non int')
 
     # definição de variaveis pasta de nfs originais e nfs complementares (geradas)
     sourceFolder = os.path.relpath(argv[nextarg])
@@ -54,11 +60,16 @@ def main(argv):
         print(xmlfile)
 
     print("Transformando Complementares:")
-    nNFE = 2820
+    nNFE_serie_1 = int(arg_numeros[0])
+    nNFE_serie_2 = int(arg_numeros[1])
     for xmlFile in xmlFiles:
 
         originalXML = nfs.XMLPY(
             open(os.path.join(sourceFolder, xmlFile), 'r').read())
+
+        # if (originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']["ide"]['cUF']):
+        #     continue
+
         complementarXML = nfs.XMLPY(
             open(os.path.join(baseFOlder, "base.xml"), 'r').read())
         #####################################################################################
@@ -78,8 +89,7 @@ def main(argv):
         # nNF da complementar
         # começa em 2708 com 6 digitos e vai incrementando
         xml_dict = complementarXML.getXMLDict()
-        complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["nNF"] = str(nNFE)
-        nNFE += 1
+
         complementarXML.setXMLDict(xml_dict)
 
         # definir data de emissão da complementar
@@ -126,13 +136,14 @@ def main(argv):
         xml_dict['NFe']['infNFe']['total']['ICMSTot']['vBC'] = 0
 
         temp_list = []
-        for o_det in originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']:
-            temp_dict = Dict(**xml_dict['NFe']['infNFe']['det'][0])
+        for produto_original in originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']:
+            produto_atual = Dict(**xml_dict['NFe']['infNFe']['det'][0])
 
-            temp_dict['@nItem'] = o_det['@nItem']
+            produto_atual['@nItem'] = produto_original['@nItem']
 
-            temp_dict.imposto.ICMS.ICMS00.vBC = o_det['prod']['vProd']
-            temp_dict.prod.NCM = o_det['prod']['NCM']
+            produto_atual.imposto.ICMS.ICMS00.vBC = produto_original['prod']['vProd']
+            produto_atual.prod.NCM = produto_original['prod']['NCM']
+            produto_atual.prod.qCom = 1.0000
 
             # ????? / TODO
             # xml_dict['NFe']['infNFe']['total']['ICMSTot']['vBC'] = originalXML.getXMLDict(
@@ -145,48 +156,41 @@ def main(argv):
             #     novo_vbc)
 
             #  Complemento de CONFINS
-
-            temp_dict.imposto.COFINS.COFINSOutr.vBC = str(
-                "0.00")
-            temp_dict.imposto.COFINS.COFINSOutr.pCOFINS = str(
-                "0.00")
-            temp_dict.imposto.COFINS.COFINSOutr.vCOFINS = str(
-                "0.00")
-            temp_dict.imposto.PIS.PISOutr.vBC = str(
-                "0.00")
-            temp_dict.imposto.PIS.PISOutr.pPIS = str(
-                "0.00")
-            temp_dict.imposto.PIS.PISOutr.vPIS = str(
-                "0.00")
+            produto_atual.imposto.COFINS.COFINSOutr.vBC = str("0.00")
+            produto_atual.imposto.COFINS.COFINSOutr.pCOFINS = str("0.00")
+            produto_atual.imposto.COFINS.COFINSOutr.vCOFINS = str("0.00")
+            produto_atual.imposto.PIS.PISOutr.vBC = str("0.00")
+            produto_atual.imposto.PIS.PISOutr.pPIS = str("0.00")
+            produto_atual.imposto.PIS.PISOutr.vPIS = str("0.00")
 
             # ICMS Total
-            # try:
-            #     # __import__('ipdb').set_trace()
-            # xml_dict['NFe']['infNFe']['total']['ICMSTot']['vICMS'] += "{:.2f}".format(round(float(
-            #     temp_dict["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04, 2))
-            temp_dict["imposto"]["ICMS"]["ICMS00"]["vICMS"] = "{:.2f}".format(
-                round(float(temp_dict["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04, 2))
-            # __import__('ipdb').set_trace()
-            # except KeyError as ke:
-            #     print(ke)
-            #  InfADIC
+            produto_atual["imposto"]["ICMS"]["ICMS00"]["vICMS"] = "{:.2f}".format(
+                round(float(produto_atual["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04, 2))
 
             if (valores['serie'] == '1'):
-                temp_dict.prod.CFOP = '6108'
+                produto_atual.prod.CFOP = '6108'
+                produto_atual.prod.cProd = 'CFOP6108'
+                complementarXML.getXMLDict(
+                )["NFe"]["infNFe"]["ide"]["nNF"] = str(nNFE_serie_1)
+                nNFE_serie_1 += 1
+                with open('nNFE_atual', 'a') as fd:
+                    fd.write("\nnNFE_serie_1: "+str(nNFE_serie_1))
+
             elif (valores['serie'] == '2'):
-                temp_dict.prod.CFOP = '6106'
+                produto_atual.prod.CFOP = '6106'
+                produto_atual.prod.cProd = 'CFOP6106'
+                complementarXML.getXMLDict(
+                )["NFe"]["infNFe"]["ide"]["nNF"] = str(nNFE_serie_2)
+                nNFE_serie_2 += 1
+                with open('nNFE_atual', 'a') as fd:
+                    fd.write("nNFE_serie_2: "+str(nNFE_serie_2))
 
-            __import__('ipdb').set_trace()
-
-            temp_list.append(temp_dict)
+            temp_list.append(produto_atual)
 
         xml_dict['NFe']['infNFe']['det'] = temp_list
 
         xml_dict['NFe']['infNFe']['total']['ICMSTot']['vICMS'] = '0.00'
-        # "{:.2f}".format(round(float(
-        #     originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['total']['ICMSTot']['vNF']) * 0.04, 2))
 
-        __import__('ipdb').set_trace()
         complementarXML.setXMLDict(xml_dict)
         ############################################################################################
 
@@ -262,6 +266,8 @@ def main(argv):
         )["nfeProc"]['NFe']['infNFe']['emit']['enderEmit']['fone']
         xml_dict['NFe']['infNFe']["emit"]["IE"] = originalXML.getXMLDict()[
             "nfeProc"]['NFe']['infNFe']['emit']['IE']
+        xml_dict['NFe']['infNFe']["emit"]["enderEmit"]['xCpl'] = originalXML.getXMLDict()[
+            "nfeProc"]['NFe']['infNFe']['emit']["enderEmit"]['xCpl']
         # originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['CRT']
         xml_dict['NFe']['infNFe']["emit"]["CRT"] = '3'
 

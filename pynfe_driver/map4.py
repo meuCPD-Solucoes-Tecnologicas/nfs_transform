@@ -151,7 +151,7 @@ def mapProduto(nfe_dict:dict):
 
         ipi = dict(
             ipi_classe_enquadramento=nfe_ipi.get('cEnq'),
-            ipi_codigo_enquadramento=nfe_ipi.get('CST')
+            ipi_codigo_enquadramento=nfe_ipi['IPINT'].get('CST')
         )
 
         nfe_confins = prod["imposto"]['COFINS']["COFINSOutr"]
@@ -172,6 +172,7 @@ def mapProduto(nfe_dict:dict):
         )
 
         produto = prod['prod']
+
         yield dict(
             codigo=produto.get("cProd"),
             ean=produto.get("cEAN"),
@@ -179,7 +180,7 @@ def mapProduto(nfe_dict:dict):
             ncm=produto.get("NCM"),
             cfop=produto.get("CFOP"),
             unidade_comercial=produto.get("uCom"),
-            quantidade_comercialor=produto.get("qCom"),
+            quantidade_comercial=produto.get("qCom"),
             valor_unitario_comercial=NonnableDecimal(produto.get("vUnCom")),
             valor_total_bruto=NonnableDecimal(produto.get("vProd")),
             ean_tributavel=produto.get("cEANTrib"),
@@ -197,7 +198,7 @@ def mapProduto(nfe_dict:dict):
 
 def mapEmitente(chave: str):
     if chave.startswith("endere"):
-        return mapEndereco((chave))
+        return mapEndereco(chave)
     return {
         "cnpj": "CPF",
         "cnpj": "CNPJ",

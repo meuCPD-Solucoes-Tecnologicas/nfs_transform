@@ -168,7 +168,6 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict) -> etree.Element:
     # .get('prod')
     produtos = mapProduto(nfe_dict)
 
-
     nfe_resp_tec = nfe_dict['infRespTec']
 
     responsavel_tecnico = dict(
@@ -188,7 +187,6 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict) -> etree.Element:
     nota = nfe_dict['ide']
 
     nfe_total = nfe_dict['total']["ICMSTot"]
-    __import__('ipdb').set_trace()
     total = dict(
         totais_icms_base_calculo=Decimal(nfe_total["vBC"]),
         totais_icms_total=Decimal(nfe_total["vICMS"]),
@@ -237,6 +235,7 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict) -> etree.Element:
         processo_emissao=nota['procEmi'],
         transporte_modalidade_frete=nfe_dict['transp']["modFrete"],
         tipo_pagamento=nfe_dict['pag']["detPag"]["tPag"],
+        informacoes_complementares_interesse_contribuinte=nfe_dict['infAdic']['infCpl'],
         **total
     )
     nota_fiscal_Pynfe = NotaFiscal(
@@ -252,10 +251,12 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict) -> etree.Element:
         nota_fiscal_Pynfe.adicionar_produto_servico(
             **produto,
         )
-    nota_fiscal_Pynfe.adicionar_transporte_volume(
-        peso_liquido=nfe_dict["transp"]["vol"]["pesoL"],
-        peso_bruto=nfe_dict["transp"]["vol"]["pesoB"],
-    )
+
+    # nota_fiscal_Pynfe.adicionar_transporte_volume(
+    #     quantidade = Decimal(1),
+    #     peso_liquido=nfe_dict["transp"]["vol"]["pesoL"],
+    #     peso_bruto=nfe_dict["transp"]["vol"]["pesoB"],
+    # )
     # vizualiza nota attrs:
     pp({
         atr: getattr(nota_fiscal_Pynfe, atr)
