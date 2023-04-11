@@ -1,5 +1,6 @@
-
+from multiprocessing import Process
 import os
+import re
 import sys
 from pprint import pformat
 from time import sleep
@@ -9,6 +10,11 @@ from pytz import timezone
 from pynfe_driver import pynfe_driver as pdriver
 from decimal import Decimal
 from addict import Dict
+
+def log(msg=''):
+    now = datetime.now().isoformat()
+    with open('log/geral.log','a') as fd:
+        fd.write(f'{now}: {msg}')
 
 
 def main(argv):
@@ -54,26 +60,41 @@ def main(argv):
         sys.exit(1)
 
     # lista de arquivos xml na pasta de origem
-    xmlFiles = [f for f in os.listdir(sourceFolder) if f.endswith('.xml')]
-    print("Arquivos Encontrados:")
-    for xmlfile in xmlFiles:
-        print(xmlfile)
+    def sort_por_nome(file_name):
+        if re.match(r'[0-9]{44}',file_name) is None: raise Exception("Arquivo com nome inválido: "+file_name)
+        ano_mes = file_name[2:6] 
+        nNF = file_name[25:34]
+        return ano_mes+nNF
+    xmlFiles = sorted(
+        [f for f in os.listdir(sourceFolder) if f.endswith('.xml')],
+        key=sort_por_nome
+        )
+    
+    log(
+        "Arquivos encontrados e ordenados:"+'\n'.join(xmlFiles)
+    )
+    if(
+        input("Arquivos encontrados e ordenados: "+'\n'.join(xmlFiles[:20])+'Continuar?(S/n)').lower()!='s'
+        ): exit()
+    
+        
 
+    log("Transformando Complementares:")
     print("Transformando Complementares:")
+    
     nNFE_serie_1 = int(arg_numeros[0])
     nNFE_serie_2 = int(arg_numeros[1])
-    # if not nNFE_serie_1
+
     for xmlFile in xmlFiles:
 
         originalXML = nfs.XMLPY(
             open(os.path.join(sourceFolder, xmlFile), 'r').read())
-
-        # if (originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']["ide"]['cUF']):
-        #     continue
+        log(f"Aberto Original {os.path.join(sourceFolder, xmlFile)} ")
 
         complementarXML = nfs.XMLPY(
             open(os.path.join(baseFOlder, "base.xml"), 'r').read())
-        #####################################################################################
+        log(f"Aberto template {os.path.join(baseFOlder, 'base.xml')}")
+
         # salva dict original
         if not os.path.exists("NFS/Dicts_original"):
             os.makedirs("NFS/Dicts_original")
@@ -119,12 +140,10 @@ def main(argv):
         xml_dict = complementarXML.getXMLDict()
 
         # Complemento de ICMS
-        # save original value on file
-        with open(os.path.join(targetFolder, "originalvalue.py"), 'w+') as fd:
-            fd.write(str(complementarXML.getXMLDict())+'\n')
+        # save origi(str(complementarXML.getXMLDict())+'\n')
 
         #### ALTERANDO CAMPOS det #########################################################
-
+        log("Adiciona produtos")
         valores = {'data-emissao': originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['dhEmi'],
                    "No_NF": originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['nNF'],
                    "serie": originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['ide']['serie']}
@@ -187,6 +206,7 @@ def main(argv):
                 nNFE_serie_2 += 1
 
             temp_list.append(produto_atual)
+        log("Produtos adicionados: "+'\n'.join(temp_list))
 
         xml_dict['NFe']['infNFe']['det'] = temp_list
 
@@ -268,7 +288,7 @@ def main(argv):
         xml_dict['NFe']['infNFe']["emit"]["IE"] = originalXML.getXMLDict()[
             "nfeProc"]['NFe']['infNFe']['emit']['IE']
         xml_dict['NFe']['infNFe']["emit"]["enderEmit"]['xCpl'] = originalXML.getXMLDict()[
-            "nfeProc"]['NFe']['infNFe']['emit']["enderEmit"]['xCpl']
+            "nfeProc"]['NFe']['infNFe']['emit']["enderEmit"].get('xCpl','')
         # originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['CRT']
         xml_dict['NFe']['infNFe']["emit"]["CRT"] = '3'
 
@@ -350,35 +370,33 @@ def main(argv):
         # complementarXML.setXML(complementarXML.sign_procNfe("./NFS/certificados/CERTIFICADO_LUZ_LED_COMERCIO_ONLINE_VENCE_13.05.2023.p12","123456"))
 
         #####################################################################################
-        print(complementarXML.getXMLDict()["NFe"]["infNFe"]["@Id"])
+        # print(complementarXML.getXMLDict()["NFe"]["infNFe"]["@Id"])
         arqname = os.path.join(targetFolder, "COMPLEMENTAR-"+complementarXML.getXMLDict()[
                                "NFe"]["infNFe"]["ide"]["NFref"]["refNFe"]+'.xml')
         complementarXML.saveXML(arqname)
         open(arqname+'.nfe_dict.py',
              'w').write(pformat(complementarXML.getXMLDict()))
-        # processo de envio
+        log(f"Salvo xml e dict: {arqname}")
+
 
         if ("--envio-producao" in args_dest or "--envprod" in args_dest):
             pdriver.configura(
                 caminho_certificado="./NFS/certificados/CERTIFICADO_LUZ_LED_COMERCIO_ONLINE_VENCE_13.05.2023.p12",
                 senha_certificado="123456",
                 ambiente_homologacao=False,
+                ignora_homologacao_warning=True,
                 uf="SP",
                 gera_log=True
             )
 
-            pdriver._teste_configurado()  # Verifica se o ambiente está configurado corretamente
-
             dicthomo = complementarXML.getXMLDict()
 
-            # altera xnome para literal "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
-            dicthomo["NFe"]["infNFe"]["dest"]["xNome"] = "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
-
+            log("ENVIANDO PARA PRODUÇÃO")
             # Envia a NFe para a SEFAZ HOMOLOGACAO
             xmlassinado = pdriver.converte_para_pynfe_XML_assinado(dicthomo)
-            chaveretornada = pdriver.autorização(xmlassinado)
+            recibo = pdriver.autorização(xmlassinado)
 
-            pdriver.consulta_recibo(chaveretornada)
+            pdriver.consulta_recibo(recibo)
 
         if ("--envio-homologacao" in args_dest or "--envhom" in args_dest):
             pdriver.configura(
@@ -389,22 +407,38 @@ def main(argv):
                 gera_log=True
             )
 
-            pdriver._teste_configurado()  # Verifica se o ambiente está configurado corretamente
-
             dicthomo = complementarXML.getXMLDict()
-            with open("braba"".py", 'w+') as fd:
-                fd.write("nfe_dict="+pformat(complementarXML.getXMLDict())+'\n')
 
             # altera xnome para literal "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
             dicthomo["NFe"]["infNFe"]["dest"]["xNome"] = "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
 
             # Envia a NFe para a SEFAZ HOMOLOGACAO
             xmlassinado = pdriver.converte_para_pynfe_XML_assinado(dicthomo)
-            chaveretornada = pdriver.autorização(xmlassinado)
+            def consulta_com_sleep(recibo,tMed):
+                sleep(tMed)
+                pdriver.consulta_recibo(recibo)
+            def autoriza_process(xmlassinado):
+                    
+                recibo = pdriver.autorização(xmlassinado)
+                
+                tMed = 1
 
-            sleep(3)
 
-            pdriver.consulta_recibo(chaveretornada)
+                Process(
+                    name='consulta_nfes',
+                    target=consulta_com_sleep,
+                    args=(recibo,tMed),
+                    # daemon=True
+                ).start()
+            
+            Process(
+                name='autoriza_nfes',
+                target=autoriza_process,
+                args=(xmlassinado,),
+                # daemon=True
+            ).start()
+            
+
 
 
 if __name__ == '__main__':
