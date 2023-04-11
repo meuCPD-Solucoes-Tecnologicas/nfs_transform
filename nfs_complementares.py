@@ -400,7 +400,7 @@ def main(argv):
 
         if ("--envio-homologacao" in args_dest or "--envhom" in args_dest):
             pdriver.configura(
-                caminho_certificado="/home/dev/nfs_transform/NFS/certificados/CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12",
+                caminho_certificado="./NFS/certificados/CERTIFICADO_LUZ_LED_COMERCIO_ONLINE_VENCE_13.05.2023.p12",
                 senha_certificado="123456",
                 ambiente_homologacao=True,
                 uf="SP",

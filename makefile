@@ -5,7 +5,7 @@ generate_and_send:
 	python  ./nfs_complementares.py --envio-producao NFS/Originais NFS/Complementares NFS/Base
 
 generate_and_homo:
-	python  ./nfs_complementares.py --envio-homologacao NFS/Originais NFS/Complementares NFS/Base 2820 3820
+	python  ./nfs_complementares.py --envio-homologacao NFS/Originais NFS/Complementares NFS/Base 2921 42596 
 
 limpeza:
 	rm -r ./NFS/Complementares/*
