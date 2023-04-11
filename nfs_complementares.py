@@ -2,6 +2,7 @@
 import os
 import sys
 from pprint import pformat
+from time import sleep
 from pyNFS import NFS as nfs
 from datetime import datetime
 from pytz import timezone
@@ -131,16 +132,17 @@ def main(argv):
             temp_dict['@nItem'] = o_det['@nItem']
 
             temp_dict.imposto.ICMS.ICMS00.vBC = o_det['prod']['vProd']
-            temp_dict.prod.NCM = originalXML.getXMLDict(
-            )["nfeProc"]['NFe']['infNFe']['det'][0]['prod']['NCM']
+            temp_dict.prod.NCM = o_det['prod']['NCM']
 
             # ????? / TODO
-            # xml_dict['NFe']['infNFe'].total.ICMSTot.vBC = originalXML.getXMLDict(
-            # ).nfeProc['NFe']['infNFe']['det'][0]['prod']['vProd']
-            novo_vbc = Decimal(xml_dict['NFe']['infNFe']['total']
-                               ['ICMSTot']['vBC']) + Decimal(o_det['prod']['vProd'])
-            xml_dict['NFe']['infNFe']['total']['ICMSTot']['vBC'] = "{:.2f}".format(
-                novo_vbc)
+            # xml_dict['NFe']['infNFe']['total']['ICMSTot']['vBC'] = originalXML.getXMLDict(
+            # )['nfeProc']['NFe']['infNFe']['det'][0]['prod']['vProd']
+
+            # novo_vbc = Decimal(xml_dict['NFe']['infNFe']['total']
+            #                    ['ICMSTot']['vBC']) + Decimal(o_det['prod']['vProd'])
+            # novo_vbc = Decimal(o_det['prod']['vProd'])
+            # xml_dict['NFe']['infNFe']['total']['ICMSTot']['vBC'] = "{:.2f}".format(
+            #     novo_vbc)
 
             #  Complemento de CONFINS
 
@@ -158,14 +160,15 @@ def main(argv):
                 "0.00")
 
             # ICMS Total
-            try:
-
-                xml_dict['NFe']['infNFe']['total']['ICMSTot']['vICMS'] += "{:.2f}".format(round(float(
-                    o_det["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04, 2))
-                xml_dict['NFe']['infNFe']["det"]["imposto"]["ICMS"]["ICMS00"]["vICMS"] = "{:.2f}".format(
-                    round(float(o_det["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04, 2))
-            except KeyError as ke:
-                print(ke)
+            # try:
+            #     # __import__('ipdb').set_trace()
+            # xml_dict['NFe']['infNFe']['total']['ICMSTot']['vICMS'] += "{:.2f}".format(round(float(
+            #     temp_dict["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04, 2))
+            temp_dict["imposto"]["ICMS"]["ICMS00"]["vICMS"] = "{:.2f}".format(
+                round(float(temp_dict["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04, 2))
+            # __import__('ipdb').set_trace()
+            # except KeyError as ke:
+            #     print(ke)
             #  InfADIC
 
             if (valores['serie'] == '1'):
@@ -173,16 +176,18 @@ def main(argv):
             elif (valores['serie'] == '2'):
                 temp_dict.prod.CFOP = '6106'
 
-                temp_dict.append(
-                    temp_dict
-                )
-            # ULTIMO DET
+            __import__('ipdb').set_trace()
 
             temp_list.append(temp_dict)
 
         xml_dict['NFe']['infNFe']['det'] = temp_list
-        complementarXML.setXMLDict(xml_dict)
 
+        xml_dict['NFe']['infNFe']['total']['ICMSTot']['vICMS'] = '0.00'
+        # "{:.2f}".format(round(float(
+        #     originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['total']['ICMSTot']['vNF']) * 0.04, 2))
+
+        __import__('ipdb').set_trace()
+        complementarXML.setXMLDict(xml_dict)
         ############################################################################################
 
         # emit
@@ -380,6 +385,8 @@ def main(argv):
             pdriver._teste_configurado()  # Verifica se o ambiente está configurado corretamente
 
             dicthomo = complementarXML.getXMLDict()
+            with open("braba"".py", 'w+') as fd:
+                fd.write("nfe_dict="+pformat(complementarXML.getXMLDict())+'\n')
 
             # altera xnome para literal "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
             dicthomo["NFe"]["infNFe"]["dest"]["xNome"] = "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
@@ -387,6 +394,8 @@ def main(argv):
             # Envia a NFe para a SEFAZ HOMOLOGACAO
             xmlassinado = pdriver.converte_para_pynfe_XML_assinado(dicthomo)
             chaveretornada = pdriver.autorização(xmlassinado)
+
+            sleep(3)
 
             pdriver.consulta_recibo(chaveretornada)
 

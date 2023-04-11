@@ -19,7 +19,7 @@ import os
 from lxml import etree
 
 HOMOLOGACAO: bool
-CERTIFICADO:str
+CERTIFICADO: str
 UF = "SP"
 CODIGOS_ESTADOS_T = {v: k for k, v in CODIGOS_ESTADOS.items()}
 PASTA_LOG = 'log'
@@ -34,7 +34,7 @@ def configura(
         senha_certificado: str,
         ambiente_homologacao=True,
         uf='SP',
-        gera_log=False,
+        gera_log=True,
         ignora_homologacao_warning=False
 ):
     global HOMOLOGACAO
@@ -42,13 +42,12 @@ def configura(
     global log
     global IGNORA_HOMOLOGACAO_WARNING
     global CERTIFICADO
-    
-    #os file exists
-    if not os.path.exists(caminho_certificado):
-        raise Exception('Certificado não encontrado')
-    
-    CERTIFICADO = caminho_certificado
 
+    # os file exists
+    if not os.path.exists(caminho_certificado):
+        raise Exception('Certificado não encontrado\n'+caminho_certificado)
+
+    CERTIFICADO = caminho_certificado
 
     IGNORA_HOMOLOGACAO_WARNING = ignora_homologacao_warning
     log = gera_log
@@ -73,10 +72,16 @@ def _teste_configurado():
         raise Exception('IGNORA_HOMOLOGACAO_WARNING não configurados')
 
 
-def converte_para_pynfe_XML_assinado(nfe_dict: dict)->etree.Element:
+def converte_para_pynfe_XML_assinado(nfe_dict: dict) -> etree.Element:
     _teste_configurado()
-    nfe_dict = nfe_dict['NFe']['infNFe']
+
+    try:
+        nfe_dict = nfe_dict['nfeProc']['NFe']['infNFe']
+    except:
+        nfe_dict = nfe_dict['NFe']['infNFe']
+
     nfe_emit: dict = nfe_dict["emit"]
+
     _emitente = dict(
         cnae_fiscal=nfe_emit.get(mapEmitente("cnae_fiscal")),
         cnpj=nfe_emit.get(mapEmitente("cnpj")),
@@ -160,70 +165,30 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict)->etree.Element:
         _cliente['tipo_documento'] = "CNPJ"
         _cliente['numero_documento'] = nfe_cliente.get("CNPJ")
 
-    nfe_produto = nfe_dict["det"].get('prod')
+    # .get('prod')
+    produtos = mapProduto(nfe_dict)
 
-    produto = dict(
-        codigo=nfe_produto.get("cProd"),
-        ean=nfe_produto.get("cEAN"),
-        descricao=nfe_produto.get("xProd"),
-        ncm=nfe_produto.get("NCM"),
-        cfop=nfe_produto.get("CFOP"),
-        unidade_comercial=nfe_produto.get("uCom"),
-        quantidade_comercialor=nfe_produto.get("qCom"),
-        valor_unitario_comercial=Decimal(nfe_produto.get("vUnCom")),
-        valor_total_bruto=Decimal(nfe_produto.get("vProd")),
-        ean_tributavel=nfe_produto.get("cEANTrib"),
-        unidade_tributavel=nfe_produto.get("uTrib"),
-        quantidade_tributavel=nfe_produto.get("qTrib"),
-        valor_unitario_tributavel=Decimal(nfe_produto.get("vUnTrib")),
-        ind_total=nfe_produto.get("indTot"),
-        valor_tributos_aprox=''
+
+    nfe_resp_tec = nfe_dict['infRespTec']
+
+    responsavel_tecnico = dict(
+
+        cnpj=nfe_resp_tec["CNPJ"],
+        contato=nfe_resp_tec["xContato"],
+        email=nfe_resp_tec["email"],
+        fone=nfe_resp_tec["fone"],
+
+
     )
 
-    # IMPOSTOS
-    imposto = nfe_dict['det']["imposto"]["ICMS"]["ICMS00"]
-    icms = dict(
-        icms_modalidade=imposto.get('CST'),
-        icms_aliquota=Decimal(imposto.get('pICMS')),
-        icms_valor=Decimal(imposto.get('vICMS')),
-        # fcp_base_calculo=Decimal(imposto.get('vBCFCP')),
-        icms_st_percentual_reducao_bc=imposto.get('pRedBCST'),
-        # icms_st_valor_base_calculo=Decimal(imposto.get('vBCST')),
-        icms_st_aliquota=imposto.get('pICMSST'),
-        # icms_st_valor=Decimal(imposto.get('vICMSST')),
-        # fcp_st_base_calculo=Decimal(imposto.get('vBCFCPST')),
-        icms_valor_base_calculo=Decimal(imposto.get('vBC')),
-        # icms_desonerado=Decimal(imposto.get('vICMSDeson')),
-        icms_origem=imposto.get('orig'),
-        icms_modalidade_determinacao_bc=imposto.get('modBC'),
-        icms_st_modalidade_determinacao_bc=imposto.get('modBCST')
+    nfe_ref = nfe_dict['ide']['NFref']
+    nfe_referenciada = dict(
+        chave_acesso=nfe_ref['refNFe']
     )
-
-    nfe_ipi = nfe_dict['det']["imposto"]["IPI"]
-
-    ipi = dict(
-        ipi_classe_enquadramento=nfe_ipi.get('cEnq'),
-        ipi_codigo_enquadramento=nfe_ipi.get('CST')
-    )
-
-    nfe_confins = nfe_dict['det']["imposto"]['COFINS']["COFINSOutr"]
-    confins = dict(
-        cofins_modalidade=nfe_confins.get('CST'),
-        cofins_valor_base_calculo=Decimal(nfe_confins.get('vBC')),
-        cofins_valor=Decimal(nfe_confins.get('vCOFINS')),
-        cofins_aliquota_percentual=Decimal(nfe_confins.get('pCOFINS')),
-    )
-
-    nfe_pis = nfe_dict['det']["imposto"]['PIS']["PISOutr"]
-    pis = dict(
-
-        pis_modalidade=nfe_pis["CST"],
-        pis_valor_base_calculo=Decimal(nfe_pis["vBC"]),
-        pis_aliquota_percentual=Decimal(nfe_pis["pPIS"]),
-        pis_valor=Decimal(nfe_pis["vPIS"]),
-    )
+    nota = nfe_dict['ide']
 
     nfe_total = nfe_dict['total']["ICMSTot"]
+    __import__('ipdb').set_trace()
     total = dict(
         totais_icms_base_calculo=Decimal(nfe_total["vBC"]),
         totais_icms_total=Decimal(nfe_total["vICMS"]),
@@ -251,25 +216,6 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict)->etree.Element:
 
     )
 
-   
-    nfe_resp_tec = nfe_dict['infRespTec']
-
-    responsavel_tecnico = dict(
-
-        cnpj=nfe_resp_tec["CNPJ"],
-        contato=nfe_resp_tec["xContato"],
-        email=nfe_resp_tec["email"],
-        fone=nfe_resp_tec["fone"],
-
-
-    )
-
-    nfe_ref = nfe_dict['ide']['NFref']
-    nfe_referenciada = dict(
-        chave_acesso=nfe_ref['refNFe']
-    )
-    nota = nfe_dict['ide']
-
     _nota_fiscal = dict(
         uf=CODIGOS_ESTADOS_T[nota['cUF']],
         codigo_numerico_aleatorio=nota['cNF'],
@@ -290,7 +236,8 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict)->etree.Element:
         indicador_presencial=nota['indPres'],
         processo_emissao=nota['procEmi'],
         transporte_modalidade_frete=nfe_dict['transp']["modFrete"],
-        tipo_pagamento=nfe_dict['pag']["detPag"]["tPag"]
+        tipo_pagamento=nfe_dict['pag']["detPag"]["tPag"],
+        **total
     )
     nota_fiscal_Pynfe = NotaFiscal(
         **_nota_fiscal,
@@ -301,14 +248,10 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict)->etree.Element:
     nota_fiscal_Pynfe.adicionar_nota_fiscal_referenciada(
         **nfe_referenciada
     )
-    nota_fiscal_Pynfe.adicionar_produto_servico(
-        **produto,
-        **total,
-        **icms,
-        **ipi,
-        **confins,
-        **pis
-    )
+    for produto in produtos:
+        nota_fiscal_Pynfe.adicionar_produto_servico(
+            **produto,
+        )
     nota_fiscal_Pynfe.adicionar_transporte_volume(
         peso_liquido=nfe_dict["transp"]["vol"]["pesoL"],
         peso_bruto=nfe_dict["transp"]["vol"]["pesoB"],
@@ -329,6 +272,7 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict)->etree.Element:
 
     return xml
 
+
 def autorização(xml_assinado):
     """recebe a xml assinada e a comunicação sefaz e retorna o "envio" result do pynfe"""
     _teste_configurado()
@@ -337,7 +281,7 @@ def autorização(xml_assinado):
                etree.tostring(xml_assinado, encoding='unicode'))  # type: ignore
 
     # envio
-    if not IGNORA_HOMOLOGACAO_WARNING and not HOMOLOGACAO :
+    if not IGNORA_HOMOLOGACAO_WARNING and not HOMOLOGACAO:
         input('ENVIO DE NOTA FISCAL EM PRODUÇÃO, CONTINUAR? (SIM)')
 
     envio = con.autorizacao(modelo='nfe', nota_fiscal=xml_assinado)
@@ -348,12 +292,11 @@ def autorização(xml_assinado):
         encoding='unicode')  # type: ignore
     )
 
-
-    #pega
+    # pega
     recibo = envio[1].text
     pos_chave_recibo = recibo.find('<nRec>')+6
     chave_recibo = recibo[pos_chave_recibo:pos_chave_recibo+15]
-    
+
     return chave_recibo
 
 

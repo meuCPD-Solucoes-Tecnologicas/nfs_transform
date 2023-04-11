@@ -1,3 +1,6 @@
+from decimal import Decimal
+
+
 mapa = {
     "cUF": "uf",
     "cNF": "codigo_numerico_aleatorio",
@@ -114,6 +117,83 @@ mapaT = {
     "informacoes_complementares_interesse_contribuinte": "infCpl",
 }
 
+def NonnableDecimal(num):
+    """retorna Decimal(num) se bool(num)==True, se não num"""
+    return num and Decimal(num)
+
+def mapProduto(nfe_dict:dict):
+    try:
+        nfe_produtos=nfe_dict['det']
+    except:
+        breakpoint()
+
+    for prod in nfe_produtos:
+        # IMPOSTOS
+        nfe_icms = prod["imposto"]["ICMS"]["ICMS00"]
+        icms = dict(
+            icms_modalidade=nfe_icms.get('CST'),
+            icms_aliquota=Decimal(nfe_icms.get('pICMS')),
+            icms_valor=Decimal(nfe_icms.get('vICMS')),
+            # fcp_base_calculo=Decimal(imposto.get('vBCFCP')),
+            icms_st_percentual_reducao_bc=nfe_icms.get('pRedBCST'),
+            # icms_st_valor_base_calculo=Decimal(imposto.get('vBCST')),
+            icms_st_aliquota=nfe_icms.get('pICMSST'),
+            # icms_st_valor=Decimal(imposto.get('vICMSST')),
+            # fcp_st_base_calculo=Decimal(imposto.get('vBCFCPST')),
+            icms_valor_base_calculo=Decimal(nfe_icms.get('vBC')),
+            # icms_desonerado=Decimal(imposto.get('vICMSDeson')),
+            icms_origem=nfe_icms.get('orig'),
+            icms_modalidade_determinacao_bc=nfe_icms.get('modBC'),
+            icms_st_modalidade_determinacao_bc=nfe_icms.get('modBCST')
+        )
+
+        nfe_ipi = prod["imposto"]["IPI"]
+
+        ipi = dict(
+            ipi_classe_enquadramento=nfe_ipi.get('cEnq'),
+            ipi_codigo_enquadramento=nfe_ipi.get('CST')
+        )
+
+        nfe_confins = prod["imposto"]['COFINS']["COFINSOutr"]
+        confins = dict(
+            cofins_modalidade=nfe_confins.get('CST'),
+            cofins_valor_base_calculo=Decimal(nfe_confins.get('vBC')),
+            cofins_valor=Decimal(nfe_confins.get('vCOFINS')),
+            cofins_aliquota_percentual=Decimal(nfe_confins.get('pCOFINS')),
+        )
+
+        nfe_pis = prod["imposto"]['PIS']["PISOutr"]
+        pis = dict(
+
+            pis_modalidade=nfe_pis["CST"],
+            pis_valor_base_calculo=Decimal(nfe_pis["vBC"]),
+            pis_aliquota_percentual=Decimal(nfe_pis["pPIS"]),
+            pis_valor=Decimal(nfe_pis["vPIS"]),
+        )
+
+        produto = prod['prod']
+        yield dict(
+            codigo=produto.get("cProd"),
+            ean=produto.get("cEAN"),
+            descricao=produto.get("xProd"),
+            ncm=produto.get("NCM"),
+            cfop=produto.get("CFOP"),
+            unidade_comercial=produto.get("uCom"),
+            quantidade_comercialor=produto.get("qCom"),
+            valor_unitario_comercial=NonnableDecimal(produto.get("vUnCom")),
+            valor_total_bruto=NonnableDecimal(produto.get("vProd")),
+            ean_tributavel=produto.get("cEANTrib"),
+            unidade_tributavel=produto.get("uTrib"),
+            quantidade_tributavel=produto.get("qTrib"),
+            valor_unitario_tributavel=NonnableDecimal(produto.get("vUnTrib")),
+            ind_total=produto.get("indTot"),
+            valor_tributos_aprox='',
+            **pis,
+            **icms,
+            **ipi,
+            **confins
+
+        )
 
 def mapEmitente(chave: str):
     if chave.startswith("endere"):
@@ -160,7 +240,7 @@ def mapEndereco(chave):
     }[chave]
 
 
-def mapProduto(chave):
+def mapProdutoDEPREACATED(chave):
     nfe_chave = (
         {
             "codigo": "cProd",

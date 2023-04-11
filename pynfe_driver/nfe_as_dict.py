@@ -1,8 +1,4 @@
-from pprint import pp
-from typing import Dict, TypedDict
-
-
-nfe_xml = {'NFe': {'@xmlns': 'http://www.portalfiscal.inf.br/nfe',
+nfe_dict = {'NFe': {'@xmlns': 'http://www.portalfiscal.inf.br/nfe',
          'infNFe': {'@Id': '',
                     '@versao': '4.00',
                     'dest': {'CNPJ': '13914933000136',
