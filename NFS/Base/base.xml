@@ -46,7 +46,6 @@
             <CRT></CRT>
         </emit>
         <dest>
-            <CPF></CPF>
             <xNome></xNome>
             <enderDest>
                 <xLgr></xLgr>

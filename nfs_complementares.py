@@ -11,12 +11,19 @@ from pynfe_driver import pynfe_driver as pdriver
 from decimal import Decimal
 from addict import Dict
 
-now_log = f'geral_{datetime.now().isoformat()}'
-os.mkdir(now_log)
+import requests
+from urllib3.exceptions import InsecureRequestWarning
 
-def log(msg=''):
+from progress.bar import Bar
+
+requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+
+now_log = f'0_geral_{datetime.now().isoformat()}'
+
+
+def log(msg='', tipo='NORMAL'):
     now = datetime.now().isoformat()
-    with open(f'log/{now_log}.log', 'a') as fd:
+    with open(f'log/{now_log}_{tipo}.log', 'a') as fd:
         fd.write(f'{now}: {msg}\n')
 
 
@@ -65,6 +72,7 @@ def main(argv):
 
     # lista de arquivos xml na pasta de origem
     def sort_por_nome(file_name):
+        file_name = file_name.replace("._", "").replace("-nfe", "")
         if re.match(r'[0-9]{44}', file_name) is None:
             raise Exception("Arquivo com nome inválido: "+file_name)
         ano_mes = file_name[2:6]
@@ -74,7 +82,7 @@ def main(argv):
         [f for f in os.listdir(sourceFolder) if f.endswith('.xml')],
         key=sort_por_nome
     )
-
+    xmlFiles = xmlFiles[0:5]
     log(
         "Arquivos encontrados e ordenados: "+','.join(xmlFiles)
     )
@@ -91,16 +99,22 @@ def main(argv):
     nNFE_serie_1 = int(arg_numeros[0])
     nNFE_serie_2 = int(arg_numeros[1])
 
+    bar = Bar('Processing', max=len(xmlFiles))
     for xmlFile in xmlFiles:
-
-        originalXML = nfs.XMLPY(
-            open(os.path.join(sourceFolder, xmlFile), 'r').read())
-        log(f"Aberto Original {os.path.join(sourceFolder, xmlFile)} ")
-
-        if originalXML.getXMLDict()['nfeProc']['NFe']['infNFe']['dest']['enderDest']['UF'] == 'SP':
-            log('[WARNING] '+ originalXML.get_chave_de_acesso()+' INGONARADA SP\n')
+        try:
+            originalXML = nfs.XMLPY(
+                open(os.path.join(sourceFolder, xmlFile), 'r').read())
+            log(f"Aberto Original {os.path.join(sourceFolder, xmlFile)} ")
+        except Exception as e:
+            log("[ERROR]: erro AO ABRIR ARQUIVO: " +
+                xmlFile+". Erro: "+str(e))
+            print("[ERROR]: erro AO ABRIR ARQUIVO: " +
+                  xmlFile+". Erro: "+str(e))
             continue
 
+        if originalXML.getXMLDict()['nfeProc']['NFe']['infNFe']['dest']['enderDest']['UF'] == 'SP':
+            log('[WARNING] ' + originalXML.get_chave_de_acesso()+' IGNORADA SP\n')
+            continue
 
         complementarXML = nfs.XMLPY(
             open(os.path.join(baseFOlder, "base.xml"), 'r').read())
@@ -166,6 +180,43 @@ def main(argv):
 
         xml_dict['NFe']['infNFe']['total']['ICMSTot']['vBC'] = 0
 
+
+        if (valores['serie'] == '1'):
+            CFOP_desta_nota = '6108'
+            cProd_desta_nota = 'CFOP6108'
+
+            complementarXML.getXMLDict(
+            )["NFe"]["infNFe"]["ide"]["nNF"] = str(nNFE_serie_1)
+
+            with open('nNFE_atual.log', 'a') as fd:
+                fd.write("\n SÉRIE 1: "+str(nNFE_serie_1) +
+                            ' nfe original:'+originalXML.get_chave_de_acesso())
+
+            log(f"[WARNING] nota original {originalXML.get_chave_de_acesso()} teve sua complementar associada à serie {nNFE_serie_1}")
+
+            nNFE_serie_1 += 1
+
+        elif (valores['serie'] == '2'):
+            CFOP_desta_nota = '6106'
+            cProd_desta_nota = 'CFOP6106'
+
+            complementarXML.getXMLDict(
+            )["NFe"]["infNFe"]["ide"]["nNF"] = str(nNFE_serie_2)
+
+            with open('nNFE_atual.log', 'a') as fd:
+                fd.write("\n SÉRIE 2: "+str(nNFE_serie_2) +
+                            ' nfe original:'+originalXML.get_chave_de_acesso())
+
+            log(f"[WARNING] nota original {originalXML.get_chave_de_acesso()} teve sua complementar associada à serie {nNFE_serie_2}")
+            nNFE_serie_2 += 1
+        
+        else:
+            raise Exception("VALOR DE SÉRIE INVÁLIDO, NÃO INCREMENTANDO E ASSOCIAÇÃO NÃO SALVA. SÉRIE ": valores['serie'])
+
+            
+            
+
+
         temp_list = []
         for produto_original in originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']:
             produto_atual = Dict(**xml_dict['NFe']['infNFe']['det'][0])
@@ -175,6 +226,9 @@ def main(argv):
             produto_atual.imposto.ICMS.ICMS00.vBC = produto_original['prod']['vProd']
             produto_atual.prod.NCM = produto_original['prod']['NCM']
             produto_atual.prod.qCom = 1.0000
+
+            produto_atual.prod.CFOP = CFOP_desta_nota
+            produto_atual.prod.cProd = cProd_desta_nota
 
             # ????? / TODO
             # xml_dict['NFe']['infNFe']['total']['ICMSTot']['vBC'] = originalXML.getXMLDict(
@@ -197,38 +251,11 @@ def main(argv):
             # ICMS Total
             produto_atual["imposto"]["ICMS"]["ICMS00"]["vICMS"] = "{:.2f}".format(
                 round(float(produto_atual["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04, 2))
-
-            if (valores['serie'] == '1'):
-                produto_atual.prod.CFOP = '6108'
-                produto_atual.prod.cProd = 'CFOP6108'
-
-                complementarXML.getXMLDict(
-                )["NFe"]["infNFe"]["ide"]["nNF"] = str(nNFE_serie_1)
-
-                with open('nNFE_atual', 'a') as fd:
-                    fd.write("\n SÉRIE 1: "+str(nNFE_serie_1) +
-                             ' nfe original:'+originalXML.get_chave_de_acesso())
-
-                log(f"[WARNING] nota original {originalXML.get_chave_de_acesso()} teve sua complementar associada à serie {nNFE_serie_1}")
-
-                nNFE_serie_1 += 1
-
-            elif (valores['serie'] == '2'):
-                produto_atual.prod.CFOP = '6106'
-                produto_atual.prod.cProd = 'CFOP6106'
-
-                complementarXML.getXMLDict(
-                )["NFe"]["infNFe"]["ide"]["nNF"] = str(nNFE_serie_2)
-
-                with open('nNFE_atual', 'a') as fd:
-                    fd.write("\n SÉRIE 2: "+str(nNFE_serie_2) +
-                             ' nfe original:'+originalXML.get_chave_de_acesso())
-
-                log(f"[WARNING] nota original {originalXML.get_chave_de_acesso()} teve sua complementar associada à serie {nNFE_serie_1}")
-                nNFE_serie_2 += 1
-
+            
             temp_list.append(produto_atual)
             log("Produto adicionado: "+str(produto_atual))
+
+        
 
         xml_dict['NFe']['infNFe']['det'] = temp_list
         log("Produtos adicionados!")
@@ -356,14 +383,25 @@ def main(argv):
 
         """
         xml_dict = complementarXML.getXMLDict()
-        
-        try:
-            xml_dict['NFe']['infNFe']["dest"]["CPF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['CPF']
-        except:
-            log("ERRO SCHEMA CPF!")
-            xml_dict['NFe']['infNFe']["dest"]["CNPJ"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['CNPJ']
-            log("ERRO SCHEMA IE!")
-            xml_dict['NFe']['infNFe']["dest"]["IE"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['IE']
+
+        if (
+            cpf := originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest'].get('CPF')
+        ):
+            # se cpf existe seta cpf, se não seta cnpj
+            xml_dict['NFe']['infNFe']["dest"].update(CPF=cpf)
+        else:
+            xml_dict['NFe']['infNFe']["dest"].update(CNPJ=originalXML.getXMLDict()[
+                                                     "nfeProc"]['NFe']['infNFe']['dest']['CNPJ'])
+
+        if (
+            ie := originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest'].get('IE')
+        ):
+            xml_dict['NFe']['infNFe']["dest"].update(IE=ie)
+        #     log("ERRO SCHEMA IE!")
+
+        # # xml_dict['NFe']['infNFe']["dest"]["CPF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['CPF']
+        #
+        #     log("keyerro "+str(ke))
         xml_dict['NFe']['infNFe']["dest"]["xNome"] = originalXML.getXMLDict(
         )["nfeProc"]['NFe']['infNFe']['dest']['xNome']
         xml_dict['NFe']['infNFe']["dest"]["enderDest"]["xLgr"] = originalXML.getXMLDict(
@@ -386,8 +424,7 @@ def main(argv):
         )["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['xPais']
         xml_dict['NFe']['infNFe']["dest"]["indIEDest"] = originalXML.getXMLDict(
         )["nfeProc"]['NFe']['infNFe']['dest']['indIEDest']
-       
-        
+
         complementarXML.setXMLDict(xml_dict)
 
         # gerar o id da nota
@@ -407,88 +444,97 @@ def main(argv):
              'w').write(pformat(complementarXML.getXMLDict()))
         log(f"Salvo xml e dict: {arqname}\n")
 
-        if ("--envio-producao" in args_dest or "--envprod" in args_dest):
-            pdriver.configura(
-                caminho_certificado="/home/dev/nfs_transform/NFS/certificados/CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12",
-                senha_certificado="123456",
-                ambiente_homologacao=False,
-                ignora_homologacao_warning=True,
-                uf="SP",
-                gera_log=True
-            )
+        try:
+            if ("--envio-producao" in args_dest or "--envprod" in args_dest):
+                pdriver.configura(
+                    caminho_certificado="/home/dev/nfs_transform/NFS/certificados/CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12",
+                    senha_certificado="123456",
+                    ambiente_homologacao=False,
+                    ignora_homologacao_warning=True,
+                    uf="SP",
+                    gera_log=True
+                )
 
-            dicthomo = complementarXML.getXMLDict()
+                dicthomo = complementarXML.getXMLDict()
 
-            log("ENVIANDO PARA PRODUÇÃO")
-            # Envia a NFe para a SEFAZ HOMOLOGACAO
-            xmlassinado = pdriver.converte_para_pynfe_XML_assinado(dicthomo)
+                log("ENVIANDO PARA PRODUÇÃO")
+                # Envia a NFe para a SEFAZ HOMOLOGACAO
+                xmlassinado = pdriver.converte_para_pynfe_XML_assinado(
+                    dicthomo)
 
-            def consulta_com_sleep(recibo, tMed):
-                sleep(tMed)
-                pdriver.consulta_recibo(recibo)
+                def consulta_com_sleep(recibo, tMed):
+                    sleep(tMed)
+                    pdriver.consulta_recibo(recibo)
 
-            def autoriza_process(xmlassinado):
+                def autoriza_process(xmlassinado):
 
-                recibo, tMed = pdriver.autorização(xmlassinado)
+                    recibo, tMed = pdriver.autorização(xmlassinado)
 
-                tMed += 5
+                    tMed += 5
 
+                    Process(
+                        name='consulta_nfes',
+                        target=consulta_com_sleep,
+                        args=(recibo, tMed),
+                        # daemon=True
+                    ).start()
                 Process(
-                    name='consulta_nfes',
-                    target=consulta_com_sleep,
-                    args=(recibo, tMed),
+                    name='autoriza_nfes',
+                    target=autoriza_process,
+                    args=(xmlassinado,),
                     # daemon=True
                 ).start()
 
-            Process(
-                name='autoriza_nfes',
-                target=autoriza_process,
-                args=(xmlassinado,),
-                # daemon=True
-            ).start()
-            # autoriza_process(xmlassinado)
+            elif ("--envio-homologacao" in args_dest or "--envhom" in args_dest):
+                pdriver.configura(
+                    caminho_certificado="/home/dev/nfs_transform/NFS/certificados/CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12",
+                    senha_certificado="123456",
+                    ambiente_homologacao=True,
+                    uf="SP",
+                    gera_log=True
+                )
 
-        if ("--envio-homologacao" in args_dest or "--envhom" in args_dest):
-            pdriver.configura(
-                caminho_certificado="./NFS/certificados/CERTIFICADO_LUZ_LED_COMERCIO_ONLINE_VENCE_13.05.2023.p12",
-                senha_certificado="123456",
-                ambiente_homologacao=True,
-                uf="SP",
-                gera_log=True
-            )
+                dicthomo = complementarXML.getXMLDict()
 
-            dicthomo = complementarXML.getXMLDict()
+                # altera xnome para literal "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
+                dicthomo["NFe"]["infNFe"]["dest"]["xNome"] = "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
 
-            # altera xnome para literal "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
-            dicthomo["NFe"]["infNFe"]["dest"]["xNome"] = "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
+                # Envia a NFe para a SEFAZ HOMOLOGACAO
+                xmlassinado = pdriver.converte_para_pynfe_XML_assinado(
+                    dicthomo)
 
-            # Envia a NFe para a SEFAZ HOMOLOGACAO
-            xmlassinado = pdriver.converte_para_pynfe_XML_assinado(dicthomo)
+                def consulta_com_sleep(recibo, tMed):
+                    sleep(tMed)
+                    pdriver.consulta_recibo(recibo)
 
-            def consulta_com_sleep(recibo, tMed):
-                sleep(tMed)
-                pdriver.consulta_recibo(recibo)
+                def autoriza_process(xmlassinado):
 
-            def autoriza_process(xmlassinado):
+                    recibo, tMed = pdriver.autorização(xmlassinado)
 
-                recibo, tMed = pdriver.autorização(xmlassinado)
+                    tMed += 5
 
-                tMed += 5
-
+                    Process(
+                        name='consulta_nfes',
+                        target=consulta_com_sleep,
+                        args=(recibo, tMed),
+                        # daemon=True
+                    ).start()
                 Process(
-                    name='consulta_nfes',
-                    target=consulta_com_sleep,
-                    args=(recibo, tMed),
+                    name='autoriza_nfes',
+                    target=autoriza_process,
+                    args=(xmlassinado,),
                     # daemon=True
                 ).start()
+                # autoriza_process(xmlassinado)
+        except Exception as e:
+            print(
+                f'[ERROR]: erro em {originalXML.get_chave_de_acesso()}. erro: {str(e)}')
+            log(f'[ERROR]: erro em {originalXML.get_chave_de_acesso()}. erro: {str(e)}')
+            continue
 
-            Process(
-                name='autoriza_nfes',
-                target=autoriza_process,
-                args=(xmlassinado,),
-                # daemon=True
-            ).start()
-            # autoriza_process(xmlassinado)
+        bar.next()
+
+    bar.finish()
 
 
 if __name__ == '__main__':

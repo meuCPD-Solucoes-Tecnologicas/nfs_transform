@@ -177,7 +177,7 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict) -> etree.Element:
         endereco_uf=nfe_cliente.get("enderDest", {}).get(
             mapCliente("endereco_uf"), ""),
         indicador_ie=int(nfe_cliente.get(mapCliente("indicador_ie"), "")),
-        inscricao_estadual=nfe_cliente.get(mapCliente("inscricao_estadual"),""),
+        inscricao_estadual=nfe_cliente.get(mapCliente("inscricao_estadual")),
         inscricao_municipal=nfe_cliente.get(
             mapCliente("inscricao_municipal"), ""),
         inscricao_suframa=nfe_cliente.get(mapCliente("inscricao_suframa"), ""),
@@ -309,14 +309,18 @@ def autorização(xml_assinado):
     index_id = xml_str.find("Id=")+7
 
     chave = xml_str[index_id:index_id+44]
-    _salva_log(chave+'notagerada',
-               etree.tostring(xml_assinado, encoding='unicode'))  # type: ignore
+    # _salva_log(chave+'notagerada',
+    #            etree.tostring(xml_assinado, encoding='unicode'))  # type: ignore
 
     # envio
     if not IGNORA_HOMOLOGACAO_WARNING and not HOMOLOGACAO:
         input('ENVIO DE NOTA FISCAL EM PRODUÇÃO, CONTINUAR? (SIM)')
 
-    envio = con.autorizacao(modelo='nfe', nota_fiscal=xml_assinado)
+    try:
+        envio = con.autorizacao(modelo='nfe', nota_fiscal=xml_assinado)
+    except Exception as e:
+        _salva_log('erro_autorizacao'+chave,str(e))
+        raise
     
     _salva_log(chave+'envio[1]', envio[1].text)
     _salva_log(chave+'envio[2]', etree.tostring(
@@ -346,21 +350,26 @@ def consulta(chave):
 
 def consulta_recibo(chave):
     _teste_configurado()
-    r = con.consulta_recibo(
-        'nfe',
-        chave
-    )
+    
+    try:
+        r = con.consulta_recibo(
+            'nfe',
+            chave
+        )
+    except Exception as e:
+        _salva_log('erro_consulta'+chave,str(e))
+        raise
     
     
-    log_Seerro("Rejeição: Chave de Acesso referenciada inexistente [nRef: 1]"
-               , r.text)
-    _salva_log(chave+'consulta_recibo_result_', r.text)
+    # log_Seerro("Rejeição: Chave de Acesso referenciada inexistente [nRef: 1]"
+    #            , r.text)
+    _salva_log(chave+'consulta_recibo_result_', r.text,pasta='consultas')
 
 
-def _salva_log(nome_arq, conteudo: str):
+def _salva_log(nome_arq, conteudo: str,pasta='log'):
     formatted_date = datetime.now().strftime("%Y-%m-%dT%H:%M:%S:%f")
     if log:
-        open(f'log/{nome_arq}_{formatted_date}.xml', 'w+').write(conteudo)
+        open(f'{pasta}/{nome_arq}_{formatted_date}.xml', 'w+').write(conteudo)
 # main()
 # última consulta de quinta
 # consulta_recibo('351011076380621')
