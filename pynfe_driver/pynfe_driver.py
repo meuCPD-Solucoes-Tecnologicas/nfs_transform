@@ -327,8 +327,12 @@ def autorização(xml_assinado):
     recibo = envio[1].text
     pos_chave_recibo = recibo.find('<nRec>')+6
     chave_recibo = recibo[pos_chave_recibo:pos_chave_recibo+15]
+    
+    start_tMed = recibo.find('<tMed')
+    final_tMed = recibo.find('</tMed')
+    tMed = recibo[start_tMed+6:final_tMed]
 
-    return chave_recibo
+    return chave_recibo,int(tMed)
 
 
 def consulta(chave):

@@ -10,4 +10,5 @@ generate_and_homo:
 limpeza:
 	rm -r ./NFS/Complementares/*
 	rm -r ./NFS/Dicts_original/*
+	mv ./log/geral*.log .
 	rm -r ./log/*

@@ -39,7 +39,11 @@ class XMLPY:
         with open(filename, "w+") as fd:
             fd.write(self.xml)
         
-    
+    def get_chave_de_acesso(self):
+        xml_str = self.getXML()
+        index_id = xml_str.find("Id=")+7
+
+        return xml_str[index_id:index_id+44]
 
     def get_Json(self):
         self.json = json.dumps(
