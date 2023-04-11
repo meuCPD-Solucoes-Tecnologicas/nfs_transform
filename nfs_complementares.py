@@ -62,6 +62,7 @@ def main(argv):
     print("Transformando Complementares:")
     nNFE_serie_1 = int(arg_numeros[0])
     nNFE_serie_2 = int(arg_numeros[1])
+    # if not nNFE_serie_1
     for xmlFile in xmlFiles:
 
         originalXML = nfs.XMLPY(
@@ -172,18 +173,18 @@ def main(argv):
                 produto_atual.prod.cProd = 'CFOP6108'
                 complementarXML.getXMLDict(
                 )["NFe"]["infNFe"]["ide"]["nNF"] = str(nNFE_serie_1)
-                nNFE_serie_1 += 1
                 with open('nNFE_atual', 'a') as fd:
                     fd.write("\nnNFE_serie_1: "+str(nNFE_serie_1))
+                nNFE_serie_1 += 1
 
             elif (valores['serie'] == '2'):
                 produto_atual.prod.CFOP = '6106'
                 produto_atual.prod.cProd = 'CFOP6106'
                 complementarXML.getXMLDict(
                 )["NFe"]["infNFe"]["ide"]["nNF"] = str(nNFE_serie_2)
-                nNFE_serie_2 += 1
                 with open('nNFE_atual', 'a') as fd:
-                    fd.write("nNFE_serie_2: "+str(nNFE_serie_2))
+                    fd.write("\nnNFE_serie_2: "+str(nNFE_serie_2))
+                nNFE_serie_2 += 1
 
             temp_list.append(produto_atual)
 
