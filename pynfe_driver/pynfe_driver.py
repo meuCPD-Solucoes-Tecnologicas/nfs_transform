@@ -14,6 +14,7 @@ from pynfe.utils.flags import CODIGOS_ESTADOS
 from pynfe.processamento.assinatura import AssinaturaA1
 from pynfe.processamento.comunicacao import ComunicacaoSefaz
 import os
+import re
 
 
 from lxml import etree
@@ -27,6 +28,31 @@ IGNORA_HOMOLOGACAO_WARNING: bool
 
 con: ComunicacaoSefaz
 log: bool
+
+def log_Seerro(msg,xml):
+    """Salva XML que deu erro de acordo com uma mensagem de erro.
+    template xml:
+    
+
+    Args:
+        msg (str): Mensagem de erro.
+        xml (str): XML que deu erro.
+    """
+    xml_proc = xml[str(xml).find('<protNFe '):str(xml).find('</protNFe>')+10]
+    
+    motivo = xml_proc[str(xml_proc).find('<xMotivo>')+9:str(xml_proc).find('</xMotivo>')]
+    chNfe = xml_proc[str(xml_proc).find('<chNFe>')+7:str(xml_proc).find('</chNFe>')]
+    
+
+    if motivo and msg!=motivo:
+        #verifica se existe o arquivo errors.log
+        if not os.path.exists('errors.log'):
+            with open('errors.log','w') as f:
+                f.write('')
+        
+        with open(os.path.join(PASTA_LOG,"errors.log"),'a') as f:
+            f.write(datetime.now().isoformat()+":"+chNfe+" "+motivo+"\n")
+            
 
 
 def configura(
@@ -320,6 +346,10 @@ def consulta_recibo(chave):
         'nfe',
         chave
     )
+    
+    if(HOMOLOGACAO):
+        log_Seerro("Rejeição: Chave de Acesso referenciada inexistente [nRef: 1]"
+               , r.text)
     _salva_log(chave+'consulta_recibo_result_', r.text)
 
 
