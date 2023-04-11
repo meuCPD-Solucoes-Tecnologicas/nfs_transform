@@ -356,9 +356,12 @@ def main(argv):
 
         """
         xml_dict = complementarXML.getXMLDict()
-
-        xml_dict['NFe']['infNFe']["dest"]["CPF"] = originalXML.getXMLDict()[
-            "nfeProc"]['NFe']['infNFe']['dest']['CPF']
+        
+        try:
+            xml_dict['NFe']['infNFe']["dest"]["CPF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['CPF']
+        except:
+            log("ERRO SCHEMA CPF!")
+            continue
         xml_dict['NFe']['infNFe']["dest"]["xNome"] = originalXML.getXMLDict(
         )["nfeProc"]['NFe']['infNFe']['dest']['xNome']
         xml_dict['NFe']['infNFe']["dest"]["enderDest"]["xLgr"] = originalXML.getXMLDict(
@@ -444,7 +447,7 @@ def main(argv):
 
         if ("--envio-homologacao" in args_dest or "--envhom" in args_dest):
             pdriver.configura(
-                caminho_certificado="/home/dev/nfs_transform/NFS/certificados/CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12",
+                caminho_certificado="./NFS/certificados/CERTIFICADO_LUZ_LED_COMERCIO_ONLINE_VENCE_13.05.2023.p12",
                 senha_certificado="123456",
                 ambiente_homologacao=True,
                 uf="SP",

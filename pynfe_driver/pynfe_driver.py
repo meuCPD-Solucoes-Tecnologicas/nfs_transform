@@ -351,8 +351,8 @@ def consulta_recibo(chave):
         chave
     )
     
-    if(HOMOLOGACAO):
-        log_Seerro("Rejeição: Chave de Acesso referenciada inexistente [nRef: 1]"
+    
+    log_Seerro("Rejeição: Chave de Acesso referenciada inexistente [nRef: 1]"
                , r.text)
     _salva_log(chave+'consulta_recibo_result_', r.text)
 
