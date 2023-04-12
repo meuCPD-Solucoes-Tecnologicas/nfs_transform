@@ -11,5 +11,11 @@ limpeza:
 	rm -rf ./NFS/Complementares/*
 	rm -rf ./NFS/Dicts_original/*
 	rm -rf ./consultas/*
-	mv ./log/0_geral*.log .
+	rm -rf ./log/*.xml
+
+limpeza-geral:
+	rm -rf ./NFS/Complementares/*
+	rm -rf ./NFS/Dicts_original/*
+	rm -rf ./consultas/*
 	rm -rf ./log/*
+	

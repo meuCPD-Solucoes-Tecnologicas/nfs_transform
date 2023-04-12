@@ -211,7 +211,7 @@ def main(argv):
             nNFE_serie_2 += 1
         
         else:
-            raise Exception("VALOR DE SÉRIE INVÁLIDO, NÃO INCREMENTANDO E ASSOCIAÇÃO NÃO SALVA. SÉRIE ": valores['serie'])
+            raise Exception("VALOR DE SÉRIE INVÁLIDO, NÃO INCREMENTANDO E ASSOCIAÇÃO NÃO SALVA. SÉRIE :" +valores['serie'])
 
             
             

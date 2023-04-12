@@ -4,13 +4,36 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
+        //Executar nf_complementares.py com debug e passando argumentos
+
         {
-            "name": "test pynfe_driver",
+            "name": "nf_complementares.py",
             "type": "python",
             "request": "launch",
-            "program": "/home/dev/nfs_transform/pynfe_driver/test.py",
+            "program": "nfs_complementares.py",
             "console": "integratedTerminal",
-            "justMyCode": false
+            "args": [
+                ".${workspaceFolder}/NFS/Originais",
+                "--envio-homologacao",
+                ".${workspaceFolder}/NFS/Complementares",
+                ".${workspaceFolder}/NFS/Base",
+                "2921",
+                "42596"
+            ]
         }
+       
+       
+
+
+        // {
+        //     "name": "test pynfe_driver",
+        //     "type": "python",
+        //     "request": "launch",
+        //     "program": "/home//nfs_transform/pynfe_driver/test.py",
+        //     "console": "integratedTerminal",
+        //     "justMyCode": false
+        // }
+
     ]
 }
