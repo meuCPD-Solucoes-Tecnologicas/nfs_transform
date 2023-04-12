@@ -10,12 +10,11 @@ from pytz import timezone
 from pynfe_driver import pynfe_driver as pdriver
 from decimal import Decimal
 from addict import Dict
-
+from pynfe.utils import carregar_arquivo_municipios
 import requests
 from urllib3.exceptions import InsecureRequestWarning
 
 from progress.bar import Bar
-
 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 now_log = f'0_geral_{datetime.now().isoformat()}'
@@ -82,7 +81,9 @@ def main(argv):
         [f for f in os.listdir(sourceFolder) if f.endswith('.xml')],
         key=sort_por_nome
     )
-    xmlFiles = xmlFiles[0:5]
+
+    # xmlFiles = xmlFiles[0:5]
+
     log(
         "Arquivos encontrados e ordenados: "+','.join(xmlFiles)
     )
@@ -433,12 +434,18 @@ def main(argv):
         )["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['nro']
         xml_dict['NFe']['infNFe']["dest"]["enderDest"]["xBairro"] = originalXML.getXMLDict(
         )["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['xBairro']
-        xml_dict['NFe']['infNFe']["dest"]["enderDest"]["cMun"] = originalXML.getXMLDict(
-        )["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['cMun']
-        xml_dict['NFe']['infNFe']["dest"]["enderDest"]["xMun"] = originalXML.getXMLDict(
-        )["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['xMun']
+
         xml_dict['NFe']['infNFe']["dest"]["enderDest"]["UF"] = originalXML.getXMLDict(
         )["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['UF']
+
+        xml_dict['NFe']['infNFe']["dest"]["enderDest"]["cMun"] = originalXML.getXMLDict(
+        )["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['cMun']
+
+        dict_das_cidades = carregar_arquivo_municipios(
+            xml_dict['NFe']['infNFe']["dest"]["enderDest"]["UF"])
+        xml_dict['NFe']['infNFe']["dest"]["enderDest"]["xMun"] = dict_das_cidades[xml_dict['NFe']
+                                                                                  ['infNFe']["dest"]["enderDest"]['cMun']]
+
         xml_dict['NFe']['infNFe']["dest"]["enderDest"]["CEP"] = originalXML.getXMLDict(
         )["nfeProc"]['NFe']['infNFe']['dest']['enderDest']['CEP']
         xml_dict['NFe']['infNFe']["dest"]["enderDest"]["cPais"] = originalXML.getXMLDict(
@@ -485,15 +492,15 @@ def main(argv):
                 xmlassinado = pdriver.converte_para_pynfe_XML_assinado(
                     dicthomo)
 
-                def consulta_com_sleep(recibo, tMed):
+                def consulta_com_sleep(recibo, tMed, chave_de_acesso):
                     sleep(tMed)
-                    pdriver.consulta_recibo(recibo)
+                    pdriver.consulta_recibo(recibo, chave_de_acesso)
 
                 def autoriza_process(xmlassinado):
 
                     try:
 
-                        recibo, tMed = pdriver.autorização(xmlassinado)
+                        recibo, tMed,chave_de_acesso = pdriver.autorização(xmlassinado)
                     except Exception as e:
                         log(f'[ERROR]: erro em autorização da complementar {originalXML.get_chave_de_acesso()}. erro: {str(e)}',
                             tipo="ERROR")
@@ -511,7 +518,7 @@ def main(argv):
                     Process(
                         name='consulta_nfes',
                         target=consulta_com_sleep,
-                        args=(recibo, tMed),
+                        args=(recibo, tMed, chave_de_acesso),
                         # daemon=True
                     ).start()
                 Process(
@@ -539,33 +546,31 @@ def main(argv):
                 xmlassinado = pdriver.converte_para_pynfe_XML_assinado(
                     dicthomo)
 
-                def consulta_com_sleep(recibo, tMed):
+                def consulta_com_sleep(recibo, tMed,chave_de_acesso):
                     sleep(tMed)
-                    pdriver.consulta_recibo(recibo)
+                    pdriver.consulta_recibo(recibo,chave_de_acesso)
 
                 def autoriza_process(xmlassinado):
 
                     try:
 
-                        recibo, tMed = pdriver.autorização(xmlassinado)
+                        recibo, tMed,chave_de_acesso = pdriver.autorização(xmlassinado)
                     except Exception as e:
                         log(f'[ERROR]: erro em autorização da complementar {originalXML.get_chave_de_acesso()}. erro: {str(e)}',
                             tipo="ERROR")
                         raise
                     else:
-                        with open("nNFE_atual.log", 'r+') as fd:
-                            arquivo = fd.read()
-                            arquivo = arquivo.replace(
-                                originalXML.get_chave_de_acesso() + ' []', originalXML.get_chave_de_acesso()+' [OK]')
-                            fd.seek(0)
-                            fd.write(arquivo)
+                        ...
+                        # with open("nNFE_atual_error.log", 'a') as fd:
+                        #     fd.write()
 
-                    tMed += 5
+                        
+                    tMed += 15
 
                     Process(
                         name='consulta_nfes',
                         target=consulta_com_sleep,
-                        args=(recibo, tMed),
+                        args=(recibo, tMed,chave_de_acesso),
                         # daemon=True
                     ).start()
                 Process(

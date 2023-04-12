@@ -308,7 +308,7 @@ def autorização(xml_assinado):
     xml_str = etree.tostring(xml_assinado,encoding='unicode')
     index_id = xml_str.find("Id=")+7
 
-    chave = xml_str[index_id:index_id+44]
+    chave_de_acesso = xml_str[index_id:index_id+44]
     # _salva_log(chave+'notagerada',
     #            etree.tostring(xml_assinado, encoding='unicode'))  # type: ignore
 
@@ -319,11 +319,11 @@ def autorização(xml_assinado):
     try:
         envio = con.autorizacao(modelo='nfe', nota_fiscal=xml_assinado)
     except Exception as e:
-        _salva_log('erro_autorizacao'+chave,str(e))
+        _salva_log('erro_autorizacao'+chave_de_acesso,str(e))
         raise
     
-    _salva_log(chave+'envio[1]', envio[1].text)
-    _salva_log(chave+'envio[2]', etree.tostring(
+    _salva_log(chave_de_acesso+'envio[1]', envio[1].text)
+    _salva_log(chave_de_acesso+'envio[2]', etree.tostring(
         envio[2],
         encoding='unicode')  # type: ignore
     )
@@ -336,7 +336,7 @@ def autorização(xml_assinado):
     final_tMed = recibo.find('</tMed')
     tMed = recibo[start_tMed+6:final_tMed]
 
-    return chave_recibo,int(tMed)
+    return chave_recibo,int(tMed),chave_de_acesso
 
 
 def consulta(chave):
@@ -348,7 +348,7 @@ def consulta(chave):
     _salva_log(chave+'consulta_nota_result_', r.text)
 
 
-def consulta_recibo(chave):
+def consulta_recibo(chave,chave_acesso):
     _teste_configurado()
     
     try:
@@ -357,13 +357,13 @@ def consulta_recibo(chave):
             chave
         )
     except Exception as e:
-        _salva_log('erro_consulta'+chave,str(e))
+        _salva_log('erro_consulta'+chave_acesso+chave,str(e))
         raise
     
     
     # log_Seerro("Rejeição: Chave de Acesso referenciada inexistente [nRef: 1]"
     #            , r.text)
-    _salva_log(chave+'consulta_recibo_result_', r.text,pasta='consultas')
+    _salva_log(chave_acesso+'_'+chave+'consulta_recibo_result_', r.text,pasta='consultas')
 
 
 def _salva_log(nome_arq, conteudo: str,pasta='log'):
