@@ -1,3 +1,6 @@
+PATH_ZIP = log
+FILENAME = $(shell date +%Y_%m_%d_%H_%M_%S)log.zip
+TARGET_FOLDER= /home/$(USER)/Documentos
 generate:
 	python ./nfs_complementares.py NFS/Originais NFS/Complementares NFS/Base
 
@@ -11,11 +14,18 @@ limpeza:
 	rm -rf ./NFS/Complementares/*
 	rm -rf ./NFS/Dicts_original/*
 	rm -rf ./consultas/*
-	rm -rf ./log/*.xml
+
+limpeza-logs-and-zip:
+	zip -r $(FILENAME) $(PATH_ZIP)
+	mv  $(FILENAME) $(TARGET_FOLDER)
+	rm -r ./log/*
+	
+	
 
 limpeza-geral:
 	rm -rf ./NFS/Complementares/*
 	rm -rf ./NFS/Dicts_original/*
 	rm -rf ./consultas/*
 	rm -rf ./log/*
+	
 	
