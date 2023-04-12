@@ -1,26 +1,24 @@
 [tool.poetry]
-name = "pynfs"
+name = "nfes-complementares"
 version = "0.1.0"
-description = "The package for work with nfs"
-authors = ["Leonardo Bezerra <leosoares.bezerra2017@gmail.com>"]
+description = "Para gerar notas complementares no meuCPD"
+authors = ["cesardddp <cesardddp@hotmail.com>,Leonardo Bezerra <leosoares.bezerra2017@gmail.com>"]
 license = "GPL"
 readme = "README.md"
+packages = [{include = "nfes_complementares"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
 xmltodict = "^0.13.0"
 pytz = "^2023.3"
-xsd-validator = "^0.0.3"
-lxml = "^4.9.2"
-pyopenssl = "^23.1.1"
-pynfe = "^0.4.3"
-
+PyNFe = "^0.4.3"
+progress = "^1.6"
+addict = "^2.4.0"
 
 [tool.poetry.group.dev.dependencies]
-autopep8 = "^2.0.2"
+black = "^23.3.0"
 ipython = "^8.12.0"
 ipdb = "^0.13.13"
-progress = "^1.6"
 
 [build-system]
 requires = ["poetry-core"]

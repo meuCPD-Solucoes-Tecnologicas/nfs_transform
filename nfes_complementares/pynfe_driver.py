@@ -14,8 +14,7 @@ from pynfe.utils.flags import CODIGOS_ESTADOS
 from pynfe.processamento.assinatura import AssinaturaA1
 from pynfe.processamento.comunicacao import ComunicacaoSefaz
 import os
-import re
-
+from nfes_complementares.nfes_complementares.nfes_argsv import args
 
 from lxml import etree
 
@@ -98,7 +97,7 @@ def _teste_configurado():
         raise Exception('IGNORA_HOMOLOGACAO_WARNING não configurados')
 
 
-def converte_para_pynfe_XML_assinado(nfe_dict: dict) -> etree.Element:
+def converte_para_pynfe_XML_assinado(nfe_dict: dict):
     _teste_configurado()
 
     try:
@@ -305,7 +304,7 @@ def autorização(xml_assinado):
     _teste_configurado()
 
 
-    xml_str = etree.tostring(xml_assinado,encoding='unicode')
+    xml_str = etree.tostring(xml_assinado,encoding='unicode') # type: ignore
     index_id = xml_str.find("Id=")+7
 
     chave_de_acesso = xml_str[index_id:index_id+44]
@@ -322,10 +321,11 @@ def autorização(xml_assinado):
         _salva_log('erro_autorizacao'+chave_de_acesso,str(e))
         raise
     
-    _salva_log(chave_de_acesso+'envio[1]', envio[1].text)
-    _salva_log(chave_de_acesso+'envio[2]', etree.tostring(
-        envio[2],
-        encoding='unicode')  # type: ignore
+    _salva_log(chave_de_acesso+'recebi_envio', envio[1].text,args.pasta_recibos)
+    _salva_log(chave_de_acesso+'nfe_complementar', etree.tostring(
+        envio[2], # type: ignore
+        encoding='unicode'),  # type: ignore
+        args.pasta_geradas
     )
     # pega
     recibo = envio[1].text
@@ -363,10 +363,11 @@ def consulta_recibo(chave,chave_acesso):
     
     # log_Seerro("Rejeição: Chave de Acesso referenciada inexistente [nRef: 1]"
     #            , r.text)
-    _salva_log(chave_acesso+'_'+chave+'consulta_recibo_result_', r.text,pasta='consultas')
+    _salva_log(chave_acesso+'_'+chave+'consulta_recibo_result_', r.text,pasta=args.pasta_consultas_recibos)
 
-
-def _salva_log(nome_arq, conteudo: str,pasta='log'):
+def _salva_log(nome_arq, conteudo: str,pasta=None):
+    if pasta is None:
+        pasta = args.pasta_log
     formatted_date = datetime.now().strftime("%Y-%m-%dT%H:%M:%S:%f")
     if log:
         open(f'{pasta}/{nome_arq}_{formatted_date}.xml', 'w+').write(conteudo)

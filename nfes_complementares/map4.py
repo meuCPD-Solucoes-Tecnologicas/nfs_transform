@@ -125,7 +125,8 @@ def mapProduto(nfe_dict:dict):
     try:
         nfe_produtos=nfe_dict['det']
     except:
-        breakpoint()
+        raise
+
 
     for prod in nfe_produtos:
         # IMPOSTOS

@@ -1,0 +1,722 @@
+from multiprocessing import Process
+import os
+import re
+import shelve
+import sys
+from pprint import pformat
+from time import sleep
+from typing import Literal
+from datetime import datetime
+from pytz import timezone
+from addict import Dict
+from pynfe.utils import carregar_arquivo_municipios
+import requests
+from urllib3.exceptions import InsecureRequestWarning
+from progress.bar import Bar
+
+from . import pynfe_driver as pdriver
+from . import NFS as nfs
+from . import nfes_argsv
+from . import log
+
+args = nfes_argsv.args
+log = log.log
+
+requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)  # type: ignore
+
+
+def handle_series():
+    """retorna função para pegar último nNFe e função para salvar nNFe"""
+    # s1 = shelve.open('tmp/nfs_complementares/serie_1')
+    # s2 = shelve.open('tmp/nfs_complementares/serie_2')
+    # fazer open anterior com with
+    os.makedirs("/tmp/nfs_complementares", exist_ok=True)
+    caminho_s1 = (
+        "/tmp/nfs_complementares/serie_1"
+        if args.envio_producao
+        else "/tmp/nfs_complementares/serie_1_homologacao"
+    )
+    caminho_s2 = (
+        "/tmp/nfs_complementares/serie_2"
+        if args.envio_producao
+        else "/tmp/nfs_complementares/serie_2_homologacao"
+    )
+
+    def pega_último(N_série: Literal[1, 2]):
+        with shelve.open(caminho_s1) if N_série == 1 else shelve.open(caminho_s2) as s:
+            maior_key = max(s.keys())
+            return maior_key, s[maior_key]
+
+    def salva(N_série: Literal[1, 2], chave_acesso_original, enviado, nNFE=None):
+        with shelve.open(caminho_s1) if N_série == 1 else shelve.open(caminho_s2) as s:
+            maior_key_mais_1 = nNFE if nNFE else int(max(s.keys())) + 1
+            s[str(maior_key_mais_1)] = (chave_acesso_original, enviado)
+            log(
+                f"[WARNING] nota original {chave_acesso_original} teve sua complementar associada à serie {maior_key_mais_1}"
+            )
+            return str(maior_key_mais_1), (chave_acesso_original, enviado)
+
+    return pega_último, salva
+
+
+def main():
+    # definição de variaveis pasta de nfs originais e nfs complementares (geradas)
+    sourceFolder = os.path.relpath(args.pasta_origem)
+    targetFolder = os.path.relpath(args.pasta_geradas)
+    baseFOlder = os.path.relpath(os.path.dirname(__file__) + "/template/")
+
+    # verifica se a pasta de origem existe
+    if not os.path.exists(sourceFolder):
+        print("Pasta de origem não encontrada")
+        sys.exit(1)
+
+    # verifica se a pasta de origem está vazia
+    if not os.listdir(sourceFolder):
+        print("Pasta de origem vazia")
+        sys.exit(1)
+
+    # verifica se a pasta de base existe
+    if not os.path.exists(baseFOlder):
+        print("Pasta de base não encontrada")
+        sys.exit(1)
+
+    # verifica se a pasta de destino existe
+    if not os.path.exists(targetFolder):
+        os.mkdir(targetFolder)
+
+    os.makedirs(args.pasta_log, exist_ok=True)
+    os.makedirs(args.pasta_geradas,exist_ok=True)
+    os.makedirs(args.pasta_recibos,exist_ok=True)
+    os.makedirs(args.pasta_consultas_recibos,exist_ok=True)
+
+    # lista de arquivos xml na pasta de origem
+    def sort_por_nome(file_name):
+        file_name = file_name.replace("._", "").replace("-nfe", "")
+        if re.match(r"[0-9]{44}", file_name) is None:
+            raise Exception("Arquivo com nome inválido: " + file_name)
+        ano_mes = file_name[2:6]
+        nNF = file_name[25:34]
+        return ano_mes + nNF
+
+    xmlFiles = sorted(
+        [f for f in os.listdir(sourceFolder) if f.endswith(".xml")], key=sort_por_nome
+    )
+
+    # xmlFiles = xmlFiles[0:5]
+
+    log("Arquivos encontrados e ordenados: " + ",".join(xmlFiles))
+    if (
+        input(
+            "Arquivos encontrados e ordenados: "
+            + "\n".join(xmlFiles[:20])
+            + f'\n{"...mais "+str((len(xmlFiles)-20)) if len(xmlFiles)>20 else ""}\nContinuar?(s/N)'
+        ).lower()
+        != "s"
+    ):
+        exit()
+
+    log("Transformando Complementares:")
+    print("Transformando Complementares:")
+
+    nNFE_serie_1 = int(args.start_serie_1)
+    nNFE_serie_2 = int(args.start_serie_2)
+
+    pega_ultimo_nNfe, salva_Nnfe = handle_series()
+
+    if nNFE_serie_1 == 0 or nNFE_serie_2 == 0:
+        nNFE_serie_1 = pega_ultimo_nNfe(1)[0]
+        nNFE_serie_2 = pega_ultimo_nNfe(2)[0]
+        # with open("nNFE_atual.log", 'r') as fd:
+        #     nfes1 = False
+        #     nfes2 = False
+        #     indice_linha = 0
+        #     while not nfes1 and not nfes2:
+        #         indice_linha -= 1
+        #         line = fd.readline(indice_linha)
+        #         if line == '\n':
+        #             continue
+        #         serie, nota_info = line.split(' nfe original:')
+        #         if serie.startswith('SÉRIE 1'):
+        #             nfes1 = int(serie.replace('SÉRIE 1: ', ''))+1
+        #         elif serie.startswith('SÉRIE 2'):
+        #             nfes2 = int(serie.replace('SÉRIE 2: ', ''))+1
+        #     nNFE_serie_1 = nfes1
+        #     nNFE_serie_2 = nfes2
+
+    input(
+        "Números de série encontrados no arquivo nNFE_atual.log: Série 1: "
+        + str(nNFE_serie_1)
+        + " Série 2: "
+        + str(nNFE_serie_2)
+        + "\nPressione enter para continuar ou ctrl+c para cancelar"
+    )
+
+    bar = Bar("Processing", max=len(xmlFiles))
+
+    for xmlFile in xmlFiles:
+        try:
+            originalXML = nfs.XMLPY(
+                open(os.path.join(sourceFolder, xmlFile), "r").read()
+            )
+            log(f"Aberto Original {os.path.join(sourceFolder, xmlFile)} ")
+        except Exception as e:
+            log(
+                "[ERROR]: erro AO ABRIR ARQUIVO: " + xmlFile + ". Erro: " + str(e),
+                tipo="ERROR",
+            )
+            print("[ERROR]: erro AO ABRIR ARQUIVO: " + xmlFile + ". Erro: " + str(e))
+            continue
+
+        if (
+            originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["dest"]["enderDest"][
+                "UF"
+            ]
+            == "SP"
+        ):
+            log("[WARNING] " + originalXML.get_chave_de_acesso() + " IGNORADA SP\n")
+            continue
+
+        complementarXML = nfs.XMLPY(
+            open(os.path.join(baseFOlder, "base.xml"), "r").read()
+        )
+        log(f"Aberto template {os.path.join(baseFOlder, 'base.xml')}")
+
+        # salva dict original
+        # if not os.path.exists("NFS/Dicts_original"):
+        #     os.makedirs("NFS/Dicts_original")
+
+        # with open("NFS/Dicts_original/"+xmlFile+".py", 'w+') as fd:
+        #     fd.write("nfe_dict="+pformat(originalXML.getXMLDict())+'\n')
+
+        # Referencia da complementar na nf original
+        # xml_dict = complementarXML.getXMLDict()
+        complementarXML.xmldict["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"] = str(
+            originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["@Id"]
+        ).replace("NFe", "")
+        complementarXML.setXMLDict(complementarXML.xmldict)
+
+        # definir data de emissão da complementar
+        # Definir o fuso horário
+        tz = timezone("America/Sao_Paulo")
+
+        # Obter a data e hora atual no fuso horário especificado
+        now = datetime.now(tz)
+
+        # Formatar a data e hora no formato desejado como o exemplo abaixo
+        # 2023-03-21T16:19:49-03:00
+        formatted_date = now.strftime("%Y-%m-%dT%H:%M:%S-03:00")
+
+        xml_dict = complementarXML.getXMLDict()
+        complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["dhEmi"] = formatted_date
+        complementarXML.setXMLDict(xml_dict)
+
+        # cNF e cDV da complementar
+
+        xml_dict = complementarXML.getXMLDict()
+        complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"][
+            "cNF"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["ide"]["cNF"]
+
+        # iterando em det
+        xml_dict = complementarXML.getXMLDict()
+
+        # Complemento de ICMS
+        # save origi(str(complementarXML.getXMLDict())+'\n')
+
+        #### ALTERANDO CAMPOS det #########################################################
+        log("Adicionando produtos")
+        valores = {
+            "data-emissao": originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["ide"][
+                "dhEmi"
+            ],
+            "No_NF": originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["ide"]["nNF"],
+            "serie": originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["ide"][
+                "serie"
+            ],
+        }
+        texto = f"""Conforme artigo 182 IV do RICMS, Nota fiscal complementar de ICMS referente a NF {valores["No_NF"]} da serie {str(valores["serie"]).zfill(2)} de {datetime.strptime(valores["data-emissao"].split("T")[0].replace("-","/"),"%Y/%m/%d").strftime("%d/%m/%Y")}."""
+        xml_dict["NFe"]["infNFe"]["infAdic"]["infCpl"] = texto
+        xml_dict["NFe"]["infNFe"]["ide"]["serie"] = valores["serie"]
+        xml_dict["NFe"]["infNFe"]["ide"][
+            "natOp"
+        ] = f"Complementar de ICMS (Serie {valores['serie']})"
+
+        xml_dict["NFe"]["infNFe"]["total"]["ICMSTot"]["vBC"] = 0
+
+        if valores["serie"] == "1":
+            CFOP_desta_nota = "6108"
+            cProd_desta_nota = "CFOP6108"
+
+            complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["nNF"] = str(
+                nNFE_serie_1
+            )
+
+            # with open('nNFE_atual.log', 'a') as fd:
+            #     fd.write("SÉRIE 1: "+str(nNFE_serie_1) +
+            #              ' nfe original:'+originalXML.get_chave_de_acesso()+' []'+'\n')
+
+            nNFE_serie_1, chv_original = salva_Nnfe(
+                N_série=1,
+                chave_acesso_original=originalXML.get_chave_de_acesso(),
+                enviado=False,
+            )
+
+        elif valores["serie"] == "2":
+            CFOP_desta_nota = "6106"
+            cProd_desta_nota = "CFOP6106"
+
+            complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["nNF"] = str(
+                nNFE_serie_2
+            )
+
+            # with open('nNFE_atual.log', 'a') as fd:
+            #     fd.write("SÉRIE 2: "+str(nNFE_serie_2) +
+            #              ' nfe original:'+originalXML.get_chave_de_acesso()+' []'+'\n')
+
+            # log(f"[WARNING] nota original {originalXML.get_chave_de_acesso()} teve sua complementar associada à serie {nNFE_serie_2}")
+            # nNFE_serie_2 += 1
+            nNFE_serie_2, chv_original = salva_Nnfe(
+                N_série=2,
+                chave_acesso_original=originalXML.get_chave_de_acesso(),
+                enviado=False,
+            )
+
+        else:
+            raise Exception(
+                "VALOR DE SÉRIE INVÁLIDO, NÃO INCREMENTANDO E ASSOCIAÇÃO NÃO SALVA. SÉRIE :"
+                + valores["serie"]
+            )
+
+        temp_list = []
+        for produto_original in originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"][
+            "det"
+        ]:
+            produto_atual = Dict(**xml_dict["NFe"]["infNFe"]["det"][0])
+
+            produto_atual["@nItem"] = produto_original["@nItem"]
+
+            produto_atual.imposto.ICMS.ICMS00.vBC = produto_original["prod"]["vProd"]
+            produto_atual.prod.NCM = produto_original["prod"]["NCM"]
+            produto_atual.prod.qCom = 1.0000
+
+            produto_atual.prod.CFOP = CFOP_desta_nota
+            produto_atual.prod.cProd = cProd_desta_nota
+
+            # ????? / TODO
+            # xml_dict['NFe']['infNFe']['total']['ICMSTot']['vBC'] = originalXML.getXMLDict(
+            # )['nfeProc']['NFe']['infNFe']['det'][0]['prod']['vProd']
+
+            # novo_vbc = Decimal(xml_dict['NFe']['infNFe']['total']
+            #                    ['ICMSTot']['vBC']) + Decimal(o_det['prod']['vProd'])
+            # novo_vbc = Decimal(o_det['prod']['vProd'])
+            # xml_dict['NFe']['infNFe']['total']['ICMSTot']['vBC'] = "{:.2f}".format(
+            #     novo_vbc)
+
+            #  Complemento de CONFINS
+            produto_atual.imposto.COFINS.COFINSOutr.vBC = str("0.00")
+            produto_atual.imposto.COFINS.COFINSOutr.pCOFINS = str("0.00")
+            produto_atual.imposto.COFINS.COFINSOutr.vCOFINS = str("0.00")
+            produto_atual.imposto.PIS.PISOutr.vBC = str("0.00")
+            produto_atual.imposto.PIS.PISOutr.pPIS = str("0.00")
+            produto_atual.imposto.PIS.PISOutr.vPIS = str("0.00")
+
+            # ICMS Total
+            produto_atual["imposto"]["ICMS"]["ICMS00"]["vICMS"] = "{:.2f}".format(
+                round(
+                    float(produto_atual["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04, 2
+                )
+            )
+
+            temp_list.append(produto_atual)
+            log("Produto adicionado: " + str(produto_atual))
+
+        xml_dict["NFe"]["infNFe"]["det"] = temp_list
+        log("Produtos adicionados!")
+
+        xml_dict["NFe"]["infNFe"]["total"]["ICMSTot"]["vICMS"] = "0.00"
+
+        complementarXML.setXMLDict(xml_dict)
+        ############################################################################################
+
+        # emit
+
+        """
+        complemantar
+        <emit>
+                        <CNPJ>46364058000115</CNPJ>
+                        <xNome>LUZ LED COMERCIO ONLINE LTDA</xNome>
+                        <xFant>LUZ LED DECOR</xFant>
+                        <enderEmit>
+                                <xLgr>Rua 7</xLgr>
+                                <nro>192</nro>
+                                <xCpl>Sala 02</xCpl>
+                                <xBairro>Zona Central</xBairro>
+                                <cMun>3543907</cMun>
+                                <xMun>Rio Claro</xMun>
+                                <UF>SP</UF>
+                                <CEP>13500143</CEP>
+                                <cPais>1058</cPais>
+                                <xPais>Brasil</xPais>
+                                <fone>1935571411</fone>
+                        </enderEmit>
+                        <IE>587462103112</IE>
+                        <CRT>3</CRT>
+                </emit>
+
+                original
+                <emit>
+                <CNPJ>46364058000115</CNPJ>
+                <xNome>LUZ LED COMERCIO ONLINE LTDA</xNome>
+                <enderEmit>
+                    <xLgr>Avenida 59</xLgr>
+                    <nro>1513</nro>
+                    <xBairro>Jardim Anhanguera</xBairro>
+                    <cMun>3543907</cMun>
+                    <xMun>Rio Claro</xMun>
+                    <UF>SP</UF>
+                    <CEP>13501560</CEP>
+                    <cPais>1058</cPais>
+                    <xPais>Brasil</xPais>
+                    <fone>001935571411</fone>
+                </enderEmit>
+                <IE>587462103112</IE>
+                <CRT>1</CRT>
+            </emit>
+                """
+        xml_dict = complementarXML.getXMLDict()
+        xml_dict["NFe"]["infNFe"]["emit"]["CNPJ"] = originalXML.getXMLDict()["nfeProc"][
+            "NFe"
+        ]["infNFe"]["emit"]["CNPJ"]
+        xml_dict["NFe"]["infNFe"]["emit"]["xNome"] = originalXML.getXMLDict()[
+            "nfeProc"
+        ]["NFe"]["infNFe"]["emit"]["xNome"]
+        xml_dict["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "xLgr"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "xLgr"
+        ]
+        xml_dict["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "nro"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "nro"
+        ]
+        xml_dict["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "xBairro"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "xBairro"
+        ]
+        xml_dict["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "cMun"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "cMun"
+        ]
+        xml_dict["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "xMun"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "xMun"
+        ]
+        xml_dict["NFe"]["infNFe"]["emit"]["enderEmit"]["UF"] = originalXML.getXMLDict()[
+            "nfeProc"
+        ]["NFe"]["infNFe"]["emit"]["enderEmit"]["UF"]
+        xml_dict["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "CEP"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "CEP"
+        ]
+        xml_dict["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "cPais"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "cPais"
+        ]
+        xml_dict["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "xPais"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "xPais"
+        ]
+        xml_dict["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "fone"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "fone"
+        ]
+        xml_dict["NFe"]["infNFe"]["emit"]["IE"] = originalXML.getXMLDict()["nfeProc"][
+            "NFe"
+        ]["infNFe"]["emit"]["IE"]
+        xml_dict["NFe"]["infNFe"]["emit"]["enderEmit"][
+            "xCpl"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["emit"][
+            "enderEmit"
+        ].get(
+            "xCpl", ""
+        )
+        # originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['emit']['CRT']
+        xml_dict["NFe"]["infNFe"]["emit"]["CRT"] = "3"
+
+        complementarXML.setXMLDict(xml_dict)
+
+        # dest
+        """complementar
+            <dest>
+                        <CPF>02771139030</CPF>
+                        <xNome>Henrique Maia Braum</xNome>
+                        <enderDest>
+                                <xLgr>Rua Serafim Vargas</xLgr>
+                                <nro>029</nro>
+                                <xBairro>Morro do Espelho</xBairro>
+                                <cMun>4318705</cMun>
+                                <xMun>Sao Leopoldo</xMun>
+                                <UF>RS</UF>
+                                <CEP>93030210</CEP>
+                                <cPais>1058</cPais>
+                                <xPais>Brasil</xPais>
+                        </enderDest>
+                        <indIEDest>9</indIEDest>
+                </dest>
+
+            original
+             <dest>
+                <CPF>02771139030</CPF>
+                <xNome>Henrique Maia Braum</xNome>
+                <enderDest>
+                    <xLgr>Rua Serafim Vargas</xLgr>
+                    <nro>29</nro>
+                    <xBairro>Morro do Espelho</xBairro>
+                    <cMun>4318705</cMun>
+                    <xMun>Sao Leopoldo</xMun>
+                    <UF>RS</UF>
+                    <CEP>93030210</CEP>
+                    <cPais>1058</cPais>
+                    <xPais>Brasil</xPais>
+                </enderDest>
+                <indIEDest>9</indIEDest>
+            </dest>
+
+        """
+        xml_dict = complementarXML.getXMLDict()
+
+        if cpf := originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["dest"].get(
+            "CPF"
+        ):
+            # se cpf existe seta cpf, se não seta cnpj
+            xml_dict["NFe"]["infNFe"]["dest"].update(CPF=cpf)
+        else:
+            xml_dict["NFe"]["infNFe"]["dest"].update(
+                CNPJ=originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["dest"][
+                    "CNPJ"
+                ]
+            )
+
+        if ie := originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["dest"].get("IE"):
+            xml_dict["NFe"]["infNFe"]["dest"].update(IE=ie)
+        #     log("ERRO SCHEMA IE!")
+
+        # # xml_dict['NFe']['infNFe']["dest"]["CPF"] = originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['dest']['CPF']
+        #
+        #     log("keyerro "+str(ke))
+        xml_dict["NFe"]["infNFe"]["dest"]["xNome"] = originalXML.getXMLDict()[
+            "nfeProc"
+        ]["NFe"]["infNFe"]["dest"]["xNome"]
+        xml_dict["NFe"]["infNFe"]["dest"]["enderDest"][
+            "xLgr"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["dest"]["enderDest"][
+            "xLgr"
+        ]
+        xml_dict["NFe"]["infNFe"]["dest"]["enderDest"][
+            "nro"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["dest"]["enderDest"][
+            "nro"
+        ]
+        xml_dict["NFe"]["infNFe"]["dest"]["enderDest"][
+            "xBairro"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["dest"]["enderDest"][
+            "xBairro"
+        ]
+
+        xml_dict["NFe"]["infNFe"]["dest"]["enderDest"]["UF"] = originalXML.getXMLDict()[
+            "nfeProc"
+        ]["NFe"]["infNFe"]["dest"]["enderDest"]["UF"]
+
+        xml_dict["NFe"]["infNFe"]["dest"]["enderDest"][
+            "cMun"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["dest"]["enderDest"][
+            "cMun"
+        ]
+
+        dict_das_cidades = carregar_arquivo_municipios(
+            xml_dict["NFe"]["infNFe"]["dest"]["enderDest"]["UF"]
+        )
+        xml_dict["NFe"]["infNFe"]["dest"]["enderDest"]["xMun"] = dict_das_cidades[
+            xml_dict["NFe"]["infNFe"]["dest"]["enderDest"]["cMun"]
+        ]
+
+        xml_dict["NFe"]["infNFe"]["dest"]["enderDest"][
+            "CEP"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["dest"]["enderDest"][
+            "CEP"
+        ]
+        xml_dict["NFe"]["infNFe"]["dest"]["enderDest"][
+            "cPais"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["dest"]["enderDest"][
+            "cPais"
+        ]
+        xml_dict["NFe"]["infNFe"]["dest"]["enderDest"][
+            "xPais"
+        ] = originalXML.getXMLDict()["nfeProc"]["NFe"]["infNFe"]["dest"]["enderDest"][
+            "xPais"
+        ]
+        xml_dict["NFe"]["infNFe"]["dest"]["indIEDest"] = originalXML.getXMLDict()[
+            "nfeProc"
+        ]["NFe"]["infNFe"]["dest"]["indIEDest"]
+
+        complementarXML.setXMLDict(xml_dict)
+
+        #####################################################################################
+        # print(complementarXML.getXMLDict()["NFe"]["infNFe"]["@Id"])
+        arqname = os.path.join(
+            targetFolder,
+            "COMPLEMENTAR-"
+            + complementarXML.getXMLDict()["NFe"]["infNFe"]["ide"]["NFref"]["refNFe"]
+            + ".xml",
+        )
+        complementarXML.saveXML(arqname)
+        open(arqname + ".nfe_dict.py", "w").write(pformat(complementarXML.getXMLDict()))
+        log(f"Salvo xml e dict: {arqname}\n")
+
+        try:
+            if args.envio_producao:
+                pdriver.configura(
+                    caminho_certificado=args.caminho_certificado,
+                    senha_certificado=args.senha_certificado,
+                    ambiente_homologacao=False,
+                    ignora_homologacao_warning=True,
+                    uf="SP",
+                    gera_log=True,
+                )
+
+                dicthomo = complementarXML.getXMLDict()
+
+                log("ENVIANDO PARA PRODUÇÃO")
+                # Envia a NFe para a SEFAZ HOMOLOGACAO
+                xmlassinado = pdriver.converte_para_pynfe_XML_assinado(dicthomo)
+
+                def consulta_com_sleep(recibo, tMed, chave_de_acesso):
+                    sleep(tMed)
+                    pdriver.consulta_recibo(recibo, chave_de_acesso)
+
+                input("TEM CERTEZA QUE QUER ENVIAR PARA PRODUÇÃO?")
+                input("SÓ CONFIRMADO?")
+                input("BELEZA ENTÂO")
+
+                def autoriza_process(xmlassinado):
+                    try:
+                        # recibo, tMed, chave_de_acesso = pdriver.autorização(
+                        #     xmlassinado)
+                        ...
+                    except Exception as e:
+                        log(
+                            f"[ERROR]: erro em autorização da complementar {originalXML.get_chave_de_acesso()}. erro: {str(e)}",
+                            tipo="ERROR",
+                        )
+                        raise
+                    else:
+                        salva_Nnfe(
+                            chave_acesso_original=originalXML.get_chave_de_acesso(),
+                            N_série=valores["serie"],
+                            enviado=True,
+                        )
+                        ...
+                        #     fd.write()
+                        # with open("nNFE_atual_sucesso.log", 'a') as fd:
+                        #     arquivo = arquivo.replace(
+                        #         originalXML.get_chave_de_acesso() + ' []', originalXML.get_chave_de_acesso()+' [OK]')
+                        #     fd.seek(0)
+                        #     fd.write(arquivo)
+
+                    tMed += 5
+
+                    Process(
+                        name="consulta_nfes",
+                        target=consulta_com_sleep,
+                        args=(recibo, tMed, chave_de_acesso),
+                        # daemon=True
+                    ).start()
+
+                Process(
+                    name="autoriza_nfes",
+                    target=autoriza_process,
+                    args=(xmlassinado,),
+                    # daemon=True
+                ).start()
+
+            elif not args.envio_producao:
+                pdriver.configura(
+                    caminho_certificado=args.caminho_certificado,
+                    senha_certificado=args.senha_certificado,
+                    ambiente_homologacao=True,
+                    uf="SP",
+                    gera_log=True,
+                )
+
+                dicthomo = complementarXML.getXMLDict()
+
+                # altera xnome para literal "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
+                dicthomo["NFe"]["infNFe"]["dest"][
+                    "xNome"
+                ] = "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL"
+
+                # Envia a NFe para a SEFAZ HOMOLOGACAO
+                xmlassinado = pdriver.converte_para_pynfe_XML_assinado(dicthomo)
+
+                def consulta_com_sleep(recibo, tMed, chave_de_acesso):
+                    sleep(tMed)
+                    pdriver.consulta_recibo(recibo, chave_de_acesso)
+
+                def autoriza_process(xmlassinado):
+                    try:
+                        recibo, tMed, chave_de_acesso = pdriver.autorização(xmlassinado)
+                    except Exception as e:
+                        log(
+                            f"[ERROR]: erro em autorização da complementar {originalXML.get_chave_de_acesso()}. erro: {str(e)}",
+                            tipo="ERROR",
+                        )
+                        raise
+                    else:
+                        ...
+                        salva_Nnfe(
+                            chave_acesso_original=originalXML.get_chave_de_acesso(),
+                            N_série=valores["serie"],
+                            enviado=True,
+                        )
+
+                    tMed += 15
+
+                    Process(
+                        name="consulta_nfes",
+                        target=consulta_com_sleep,
+                        args=(recibo, tMed, chave_de_acesso),
+                        # daemon=True
+                    ).start()
+
+                Process(
+                    name="autoriza_nfes",
+                    target=autoriza_process,
+                    args=(xmlassinado,),
+                    # daemon=True
+                ).start()
+                # autoriza_process(xmlassinado)
+        except Exception as e:
+            print(
+                f"[ERROR]: erro em {originalXML.get_chave_de_acesso()}. erro: {str(e)}"
+            )
+            log(
+                f"[ERROR]: erro em {originalXML.get_chave_de_acesso()}. erro: {str(e)}",
+                tipo="ERROR",
+            )
+            continue
+
+        bar.next()
+
+    bar.finish()
+
+
+if __name__ == "__main__":
+    main()

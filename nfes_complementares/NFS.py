@@ -1,7 +1,7 @@
 import xmltodict as xd
-import xsd_validator as xsdV
+# import xsd_validator as xsdV
 import os
-from lxml import etree
+# from lxml import etree
 import json
 
 
