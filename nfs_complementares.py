@@ -506,12 +506,13 @@ def main(argv):
                             tipo="ERROR")
                         raise
                     else:
-                        with open("nNFE_atual.log", 'r+') as fd:
-                            arquivo = fd.read()
-                            arquivo = arquivo.replace(
-                                originalXML.get_chave_de_acesso() + ' []', complementarXML.get_chave_de_acesso()+' [OK]')
-                            fd.seek(0)
-                            fd.write(arquivo)
+                        ...
+                        #     fd.write()
+                        # with open("nNFE_atual_sucesso.log", 'a') as fd:
+                        #     arquivo = arquivo.replace(
+                        #         originalXML.get_chave_de_acesso() + ' []', originalXML.get_chave_de_acesso()+' [OK]')
+                        #     fd.seek(0)
+                        #     fd.write(arquivo)
 
                     tMed += 5
 
@@ -561,7 +562,7 @@ def main(argv):
                         raise
                     else:
                         ...
-                        # with open("nNFE_atual_error.log", 'a') as fd:
+                        # with open("nNFE_atual_sucesso.log", 'a') as fd:
                         #     fd.write()
 
                         

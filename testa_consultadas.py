@@ -5,13 +5,16 @@ from progress.bar import Bar
 files = os.listdir('./')
 bar = Bar('Processing', max=len(files))
 
+msg_homologacao = "Rejeição: Chave de Acesso referenciada inexistente [nRef: 1]"
+msg_producao = "Autorizado o uso da NF-e"
+
 with open('falharam','a') as fdf:
     for file in files:
         with open(file) as fd:
             try:
 
                 conteudo = fd.read()
-                if conteudo.find("Rejeição: Chave de Acesso referenciada inexistente [nRef: 1]")==-1:
+                if conteudo.find(msg_producao)==-1:
                     fdf.write(f'{file}\n')
             except UnicodeDecodeError as ue:
                 print(ue)
