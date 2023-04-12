@@ -99,7 +99,34 @@ def main(argv):
     nNFE_serie_1 = int(arg_numeros[0])
     nNFE_serie_2 = int(arg_numeros[1])
 
+    if nNFE_serie_1 == 0 or nNFE_serie_2 == 0:
+
+        with open("nNFE_atual.log", 'r') as fd:
+            # linha: "SÉRIE 2: 42596 nfe original:35221046364058000115550020000060771751441829 []"
+            # linha: "SÉRIE 2: 42596 nfe original:35221046364058000115550020000060771751441829 [OK]"
+            # fd.write("SÉRIE 1: "+str(nNFE_serie_1) +
+            # ' nfe original:'+originalXML.get_chave_de_acesso()+' []'+'\n')
+            nfes1 = False
+            nfes2 = False
+            indice_linha = 0
+            while not nfes1 and not nfes2:
+                indice_linha -= 1
+                line = fd.readline(indice_linha)
+                if line == '\n':
+                    continue
+                serie, nota_info = line.split(' nfe original:')
+                if serie.startswith('SÉRIE 1'):
+                    nfes1 = int(serie.replace('SÉRIE 1: ', ''))+1
+                elif serie.startswith('SÉRIE 2'):
+                    nfes2 = int(serie.replace('SÉRIE 2: ', ''))+1
+            nNFE_serie_1 = nfes1
+            nNFE_serie_2 = nfes2
+
+    input("Números de série encontrados no arquivo nNFE_atual.log: Série 1: "+str(nNFE_serie_1) +
+          " Série 2: "+str(nNFE_serie_2)+"\nPressione enter para continuar ou ctrl+c para cancelar")
+
     bar = Bar('Processing', max=len(xmlFiles))
+
     for xmlFile in xmlFiles:
         try:
             originalXML = nfs.XMLPY(
@@ -107,7 +134,9 @@ def main(argv):
             log(f"Aberto Original {os.path.join(sourceFolder, xmlFile)} ")
         except Exception as e:
             log("[ERROR]: erro AO ABRIR ARQUIVO: " +
-                xmlFile+". Erro: "+str(e))
+                xmlFile+". Erro: "+str(e),
+                tipo="ERROR"
+                )
             print("[ERROR]: erro AO ABRIR ARQUIVO: " +
                   xmlFile+". Erro: "+str(e))
             continue
@@ -180,7 +209,6 @@ def main(argv):
 
         xml_dict['NFe']['infNFe']['total']['ICMSTot']['vBC'] = 0
 
-
         if (valores['serie'] == '1'):
             CFOP_desta_nota = '6108'
             cProd_desta_nota = 'CFOP6108'
@@ -189,8 +217,8 @@ def main(argv):
             )["NFe"]["infNFe"]["ide"]["nNF"] = str(nNFE_serie_1)
 
             with open('nNFE_atual.log', 'a') as fd:
-                fd.write("\n SÉRIE 1: "+str(nNFE_serie_1) +
-                            ' nfe original:'+originalXML.get_chave_de_acesso())
+                fd.write("SÉRIE 1: "+str(nNFE_serie_1) +
+                         ' nfe original:'+originalXML.get_chave_de_acesso()+' []'+'\n')
 
             log(f"[WARNING] nota original {originalXML.get_chave_de_acesso()} teve sua complementar associada à serie {nNFE_serie_1}")
 
@@ -204,18 +232,15 @@ def main(argv):
             )["NFe"]["infNFe"]["ide"]["nNF"] = str(nNFE_serie_2)
 
             with open('nNFE_atual.log', 'a') as fd:
-                fd.write("\n SÉRIE 2: "+str(nNFE_serie_2) +
-                            ' nfe original:'+originalXML.get_chave_de_acesso())
+                fd.write("SÉRIE 2: "+str(nNFE_serie_2) +
+                         ' nfe original:'+originalXML.get_chave_de_acesso()+' []'+'\n')
 
             log(f"[WARNING] nota original {originalXML.get_chave_de_acesso()} teve sua complementar associada à serie {nNFE_serie_2}")
             nNFE_serie_2 += 1
-        
+
         else:
-            raise Exception("VALOR DE SÉRIE INVÁLIDO, NÃO INCREMENTANDO E ASSOCIAÇÃO NÃO SALVA. SÉRIE :" +valores['serie'])
-
-            
-            
-
+            raise Exception(
+                "VALOR DE SÉRIE INVÁLIDO, NÃO INCREMENTANDO E ASSOCIAÇÃO NÃO SALVA. SÉRIE :" + valores['serie'])
 
         temp_list = []
         for produto_original in originalXML.getXMLDict()["nfeProc"]['NFe']['infNFe']['det']:
@@ -251,11 +276,9 @@ def main(argv):
             # ICMS Total
             produto_atual["imposto"]["ICMS"]["ICMS00"]["vICMS"] = "{:.2f}".format(
                 round(float(produto_atual["imposto"]["ICMS"]["ICMS00"]["vBC"]) * 0.04, 2))
-            
+
             temp_list.append(produto_atual)
             log("Produto adicionado: "+str(produto_atual))
-
-        
 
         xml_dict['NFe']['infNFe']['det'] = temp_list
         log("Produtos adicionados!")
@@ -468,7 +491,20 @@ def main(argv):
 
                 def autoriza_process(xmlassinado):
 
-                    recibo, tMed = pdriver.autorização(xmlassinado)
+                    try:
+
+                        recibo, tMed = pdriver.autorização(xmlassinado)
+                    except Exception as e:
+                        log(f'[ERROR]: erro em autorização da complementar {originalXML.get_chave_de_acesso()}. erro: {str(e)}',
+                            tipo="ERROR")
+                        raise
+                    else:
+                        with open("nNFE_atual.log", 'r+') as fd:
+                            arquivo = fd.read()
+                            arquivo = arquivo.replace(
+                                originalXML.get_chave_de_acesso() + ' []', complementarXML.get_chave_de_acesso()+' [OK]')
+                            fd.seek(0)
+                            fd.write(arquivo)
 
                     tMed += 5
 
@@ -509,7 +545,20 @@ def main(argv):
 
                 def autoriza_process(xmlassinado):
 
-                    recibo, tMed = pdriver.autorização(xmlassinado)
+                    try:
+
+                        recibo, tMed = pdriver.autorização(xmlassinado)
+                    except Exception as e:
+                        log(f'[ERROR]: erro em autorização da complementar {originalXML.get_chave_de_acesso()}. erro: {str(e)}',
+                            tipo="ERROR")
+                        raise
+                    else:
+                        with open("nNFE_atual.log", 'r+') as fd:
+                            arquivo = fd.read()
+                            arquivo = arquivo.replace(
+                                originalXML.get_chave_de_acesso() + ' []', originalXML.get_chave_de_acesso()+' [OK]')
+                            fd.seek(0)
+                            fd.write(arquivo)
 
                     tMed += 5
 
@@ -529,7 +578,8 @@ def main(argv):
         except Exception as e:
             print(
                 f'[ERROR]: erro em {originalXML.get_chave_de_acesso()}. erro: {str(e)}')
-            log(f'[ERROR]: erro em {originalXML.get_chave_de_acesso()}. erro: {str(e)}')
+            log(f'[ERROR]: erro em {originalXML.get_chave_de_acesso()}. erro: {str(e)}',
+                tipo="ERROR")
             continue
 
         bar.next()
