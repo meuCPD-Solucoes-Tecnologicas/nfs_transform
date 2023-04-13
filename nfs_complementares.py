@@ -11,11 +11,9 @@ from pynfe_driver import pynfe_driver as pdriver
 from decimal import Decimal
 from addict import Dict
 from pynfe.utils import carregar_arquivo_municipios
-import requests
-from urllib3.exceptions import InsecureRequestWarning
+
 
 from progress.bar import Bar
-requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 now_log = f'0_geral_{datetime.now().isoformat()}'
 
@@ -132,7 +130,7 @@ def main(argv):
         try:
             originalXML = nfs.XMLPY(
                 open(os.path.join(sourceFolder, xmlFile), 'r').read())
-            log(f"Aberto Original {os.path.join(sourceFolder, xmlFile)} ")
+            log(f"\nAberto Original {os.path.join(sourceFolder, xmlFile)} ")
         except Exception as e:
             log("[ERROR]: erro AO ABRIR ARQUIVO: " +
                 xmlFile+". Erro: "+str(e),
@@ -457,13 +455,6 @@ def main(argv):
 
         complementarXML.setXMLDict(xml_dict)
 
-        # gerar o id da nota
-        # xml_dict = complementarXML.getXMLDict()
-        # complementarXML.generate_NFeID()
-        # xml_dict["NFe"]["infNFe"]["@Id"] = complementarXML.id
-        # complementarXML.setXMLDict(xml_dict)
-        # # Assinar o XML
-        # complementarXML.setXML(complementarXML.sign_procNfe("./NFS/certificados/CERTIFICADO_LUZ_LED_COMERCIO_ONLINE_VENCE_13.05.2023.p12","123456"))
 
         #####################################################################################
         # print(complementarXML.getXMLDict()["NFe"]["infNFe"]["@Id"])
@@ -472,12 +463,12 @@ def main(argv):
         complementarXML.saveXML(arqname)
         open(arqname+'.nfe_dict.py',
              'w').write(pformat(complementarXML.getXMLDict()))
-        log(f"Salvo xml e dict: {arqname}\n")
+        log(f"Salvo xml e dict: {arqname}")
 
         try:
             if ("--envio-producao" in args_dest or "--envprod" in args_dest):
                 pdriver.configura(
-                    caminho_certificado="/home/dev/nfs_transform/NFS/certificados/CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12",
+                    caminho_certificado="/home/dev/notas_hell/nfs_transform/NFS/certificados/CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12",
                     senha_certificado="123456",
                     ambiente_homologacao=False,
                     ignora_homologacao_warning=True,
@@ -531,7 +522,7 @@ def main(argv):
 
             elif ("--envio-homologacao" in args_dest or "--envhom" in args_dest):
                 pdriver.configura(
-                    caminho_certificado="/home/dev/nfs_transform/NFS/certificados/CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12",
+                    caminho_certificado="/home/dev/notas_hell/nfs_transform/NFS/certificados/CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12",
                     senha_certificado="123456",
                     ambiente_homologacao=True,
                     uf="SP",

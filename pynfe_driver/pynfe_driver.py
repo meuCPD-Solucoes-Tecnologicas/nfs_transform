@@ -14,10 +14,11 @@ from pynfe.utils.flags import CODIGOS_ESTADOS
 from pynfe.processamento.assinatura import AssinaturaA1
 from pynfe.processamento.comunicacao import ComunicacaoSefaz
 import os
-import re
-
-
 from lxml import etree
+
+import requests
+from urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 HOMOLOGACAO: bool
 CERTIFICADO: str
@@ -309,8 +310,8 @@ def autorização(xml_assinado):
     index_id = xml_str.find("Id=")+7
 
     chave_de_acesso = xml_str[index_id:index_id+44]
-    # _salva_log(chave+'notagerada',
-    #            etree.tostring(xml_assinado, encoding='unicode'))  # type: ignore
+    _salva_log(chave_de_acesso+'notagerada',
+               etree.tostring(xml_assinado, encoding='unicode'))  # type: ignore
 
     # envio
     if not IGNORA_HOMOLOGACAO_WARNING and not HOMOLOGACAO:
