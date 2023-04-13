@@ -457,13 +457,6 @@ def main(argv):
 
         complementarXML.setXMLDict(xml_dict)
 
-        # gerar o id da nota
-        # xml_dict = complementarXML.getXMLDict()
-        # complementarXML.generate_NFeID()
-        # xml_dict["NFe"]["infNFe"]["@Id"] = complementarXML.id
-        # complementarXML.setXMLDict(xml_dict)
-        # # Assinar o XML
-        # complementarXML.setXML(complementarXML.sign_procNfe("./NFS/certificados/CERTIFICADO_LUZ_LED_COMERCIO_ONLINE_VENCE_13.05.2023.p12","123456"))
 
         #####################################################################################
         # print(complementarXML.getXMLDict()["NFe"]["infNFe"]["@Id"])
@@ -477,7 +470,7 @@ def main(argv):
         try:
             if ("--envio-producao" in args_dest or "--envprod" in args_dest):
                 pdriver.configura(
-                    caminho_certificado="/home/dev/nfs_transform/NFS/certificados/CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12",
+                    caminho_certificado="/home/dev/notas_hell/nfs_transform/NFS/certificados/CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12",
                     senha_certificado="123456",
                     ambiente_homologacao=False,
                     ignora_homologacao_warning=True,
@@ -531,7 +524,7 @@ def main(argv):
 
             elif ("--envio-homologacao" in args_dest or "--envhom" in args_dest):
                 pdriver.configura(
-                    caminho_certificado="/home/dev/nfs_transform/NFS/certificados/CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12",
+                    caminho_certificado="/home/dev/notas_hell/nfs_transform/NFS/certificados/CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12",
                     senha_certificado="123456",
                     ambiente_homologacao=True,
                     uf="SP",
