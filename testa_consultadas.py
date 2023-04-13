@@ -10,12 +10,14 @@ msg_producao = "Autorizado o uso da NF-e"
 
 with open('falharam','a') as fdf:
     for file in files:
+        if not file.endswith('.xml'):
+            continue
         with open(file) as fd:
             try:
-
                 conteudo = fd.read()
                 if conteudo.find(msg_producao)==-1:
-                    fdf.write(f'{file}\n')
+                    motivo = conteudo[conteudo.find('<xMotivo>')+9:conteudo.find('</xMotivo>')]
+                    fdf.write(f'{file}\nmotivo: {motivo}\n\n')
             except UnicodeDecodeError as ue:
                 print(ue)
                 print(file)

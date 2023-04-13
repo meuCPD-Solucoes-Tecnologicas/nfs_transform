@@ -11,11 +11,9 @@ from pynfe_driver import pynfe_driver as pdriver
 from decimal import Decimal
 from addict import Dict
 from pynfe.utils import carregar_arquivo_municipios
-import requests
-from urllib3.exceptions import InsecureRequestWarning
+
 
 from progress.bar import Bar
-requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 now_log = f'0_geral_{datetime.now().isoformat()}'
 
@@ -132,7 +130,7 @@ def main(argv):
         try:
             originalXML = nfs.XMLPY(
                 open(os.path.join(sourceFolder, xmlFile), 'r').read())
-            log(f"Aberto Original {os.path.join(sourceFolder, xmlFile)} ")
+            log(f"\nAberto Original {os.path.join(sourceFolder, xmlFile)} ")
         except Exception as e:
             log("[ERROR]: erro AO ABRIR ARQUIVO: " +
                 xmlFile+". Erro: "+str(e),
@@ -465,7 +463,7 @@ def main(argv):
         complementarXML.saveXML(arqname)
         open(arqname+'.nfe_dict.py',
              'w').write(pformat(complementarXML.getXMLDict()))
-        log(f"Salvo xml e dict: {arqname}\n")
+        log(f"Salvo xml e dict: {arqname}")
 
         try:
             if ("--envio-producao" in args_dest or "--envprod" in args_dest):

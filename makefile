@@ -5,13 +5,10 @@ generate:
 	python ./nfs_complementares.py NFS/Originais NFS/Complementares NFS/Base
 
 generate_and_send:
-	python  ./nfs_complementares.py --envio-producao NFS/Originais NFS/Complementares NFS/Base 
+	python  ./nfs_complementares.py --envio-producao /home/dev/Downloads/enviando_nfes_complementares/novembro/MES\ 11\ SERIE\ 2/ NFS/Complementares NFS/Base 3944 44872
 
 generate_and_homo:
 	python  ./nfs_complementares.py --envio-homologacao NFS/Originais NFS/Complementares NFS/Base 
-	python  ./nfs_complementares.py --envio-homologacao\
-	 home/dev/Downloads/enviando_nfes_complementares/novembro/MES\ 11\ SERIE\ 1\
-	  NFS/Complementares NFS/Base 
 
 limpeza:
 	rm -rf ./NFS/Complementares/*
@@ -19,8 +16,8 @@ limpeza:
 	rm -rf ./consultas/*
 
 limpeza-logs-and-zip:
-	zip -r $(FILENAME) $(PATH_ZIP)
-	mv  $(FILENAME) $(TARGET_FOLDER)
+	zip -r $(FILENAME) $(PATH_ZIP);\
+	mv  $(FILENAME) $(TARGET_FOLDER);\
 	rm -r ./log/*
 	
 	
