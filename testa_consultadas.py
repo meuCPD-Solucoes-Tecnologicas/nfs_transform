@@ -7,7 +7,10 @@ bar = Bar('Processing', max=len(files))
 
 msg_homologacao = "Rejeição: Chave de Acesso referenciada inexistente [nRef: 1]"
 msg_producao = "Autorizado o uso da NF-e"
-
+if input('prod ou homolgacao?(P/h)')=='h':
+    msg = msg_homologacao
+else:
+    msg = msg_producao
 with open('falharam','a') as fdf:
     for file in files:
         if not file.endswith('.xml'):
@@ -15,7 +18,7 @@ with open('falharam','a') as fdf:
         with open(file) as fd:
             try:
                 conteudo = fd.read()
-                if conteudo.find(msg_producao)==-1:
+                if conteudo.find(msg)==-1:
                     motivo = conteudo[conteudo.find('<xMotivo>')+9:conteudo.find('</xMotivo>')]
                     fdf.write(f'{file}\nmotivo: {motivo}\n\n')
             except UnicodeDecodeError as ue:

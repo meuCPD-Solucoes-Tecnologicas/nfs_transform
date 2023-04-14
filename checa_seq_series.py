@@ -7,7 +7,9 @@ def sendmessage(message):
     subprocess.Popen(['notify-send', message])
     return
 
-with open('nNFE_atual.log', 'r') as f:
+# atual = 'nNFE_atual_homolgacao.log'
+atual = 'nNFE_atual.log'
+with open(atual, 'r') as f:
     #exemplo line serie1: SÉRIE 1: 3943, nfe original:35221146364058000115550010000017911035692790 []
     #exemplo line serie2: SÉRIE 2: 42601 nfe original:35221046364058000115550020000060871685858158 []
 
@@ -21,8 +23,7 @@ with open('nNFE_atual.log', 'r') as f:
 
 for i, n in enumerate(seq1):
     try:
-        if n+1 != seq1[i+1]:
-            print(n)
+        assert n+1 == seq1[i+1], f"sequencia quebra em {n}"
     except IndexError:
         if(seq1[-1]==n):
             print("OK")
@@ -33,8 +34,8 @@ for i, n in enumerate(seq1):
 
 for i, n in enumerate(seq2):
     try:
-        if n+1 != seq2[i+1]:
-            print(n)
+        assert n+1 == seq2[i+1], sendmessage(f"sequencia quebra em {n}")
+            
     except IndexError:
         if(seq2[-1]==n):
             print("OK")

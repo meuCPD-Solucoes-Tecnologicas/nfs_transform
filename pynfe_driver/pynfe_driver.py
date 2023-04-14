@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from pprint import pp
+
 try:
     from .map4 import mapCliente, mapEmitente, mapProduto, mapaT
 except ImportError:
@@ -25,7 +25,7 @@ CERTIFICADO: str
 UF = "SP"
 CODIGOS_ESTADOS_T = {v: k for k, v in CODIGOS_ESTADOS.items()}
 PASTA_LOG = 'log'
-IGNORA_HOMOLOGACAO_WARNING: bool
+IGNORA_PRODUCAO_WARNING: bool
 
 con: ComunicacaoSefaz
 log: bool
@@ -62,12 +62,12 @@ def configura(
         ambiente_homologacao=True,
         uf='SP',
         gera_log=True,
-        ignora_homologacao_warning=False
+        ignora_producao_warning=False
 ):
     global HOMOLOGACAO
     global con
     global log
-    global IGNORA_HOMOLOGACAO_WARNING
+    global IGNORA_PRODUCAO_WARNING
     global CERTIFICADO
 
     # os file exists
@@ -76,7 +76,7 @@ def configura(
 
     CERTIFICADO = caminho_certificado
 
-    IGNORA_HOMOLOGACAO_WARNING = ignora_homologacao_warning
+    IGNORA_PRODUCAO_WARNING = ignora_producao_warning
     log = gera_log
     con = ComunicacaoSefaz(
         uf,
@@ -95,7 +95,7 @@ def _teste_configurado():
         raise Exception('con não configurados')
     if (log is None):
         raise Exception('log não configurados')
-    if (IGNORA_HOMOLOGACAO_WARNING is None):
+    if (IGNORA_PRODUCAO_WARNING is None):
         raise Exception('IGNORA_HOMOLOGACAO_WARNING não configurados')
 
 
@@ -301,11 +301,11 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict) -> etree.Element:
     return xml
 
 
-def autorização(xml_assinado):
-    """recebe a xml assinada e a comunicação sefaz e retorna o "envio" result do pynfe"""
+def autorização(xml_assinado:str):
+    """recebe a xml assinada em formato string e a comunicação sefaz e retorna o "envio" result do pynfe"""
     _teste_configurado()
 
-
+    xml_assinado = etree.fromstring(  xml_assinado)
     xml_str = etree.tostring(xml_assinado,encoding='unicode')
     index_id = xml_str.find("Id=")+7
 
@@ -314,7 +314,7 @@ def autorização(xml_assinado):
                etree.tostring(xml_assinado, encoding='unicode'))  # type: ignore
 
     # envio
-    if not IGNORA_HOMOLOGACAO_WARNING and not HOMOLOGACAO:
+    if not IGNORA_PRODUCAO_WARNING and not HOMOLOGACAO:
         input('ENVIO DE NOTA FISCAL EM PRODUÇÃO, CONTINUAR? (SIM)')
 
     try:
@@ -349,7 +349,7 @@ def consulta(chave):
     _salva_log(chave+'consulta_nota_result_', r.text)
 
 
-def consulta_recibo(chave,chave_acesso):
+def consulta_recibo(chave,chave_acesso,tMed):
     _teste_configurado()
     
     try:
