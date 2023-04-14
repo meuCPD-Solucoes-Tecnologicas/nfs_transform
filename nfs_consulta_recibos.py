@@ -4,7 +4,7 @@ from time import sleep
 import pynfe_driver
 
 pynfe_driver.configura(
-    caminho_certificado="/home/dev/notas_hell/nfs_transform/NFS/certificados/CERTIFICADO LUZ LED COMERCIO ONLINE_VENCE 13.05.2023.p12",
+    caminho_certificado="/home/dev/notas_hell/nfs_transform/NFS/certificados/LUZ_LED_NOVO.pfx",
     senha_certificado="123456",
     ambiente_homologacao=False,
     # ignora_homologacao_warning=True,
@@ -14,6 +14,12 @@ pynfe_driver.configura(
 
 recibos = [recibo for recibo in os.listdir("enviadas") if "envio[1]" in recibo]
 
+
+
+
+pynfe_driver.consulta_recibo('351011112297145', '35230446364058000115550020000460681436179080')
+
+breakpoint()
 lista_precessos = []
 consutadas = 0
 for recibo in recibos:
@@ -21,8 +27,8 @@ for recibo in recibos:
     
     pos_chave_recibo = recibo.find("<nRec>") + 6
     chave_recibo = recibo[pos_chave_recibo : pos_chave_recibo + 15]
-    chave_acesso = recibo[0:44]
-
+    chave_acesso = ''
+    __import__('ipdb').set_trace()
     lista_precessos.append(
         Process(
         target=pynfe_driver.consulta_recibo,
@@ -32,6 +38,7 @@ for recibo in recibos:
     if len(lista_precessos)>=10:
         for processo in lista_precessos:
             processo.start()
+            breakpoint()
         try:
             while processo := lista_precessos.pop():
                 processo.join()

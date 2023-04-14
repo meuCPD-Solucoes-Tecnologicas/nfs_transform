@@ -1,4 +1,4 @@
-Complementares = 1312.py 2624.total # versão .py das notas geradas pelo Leo, antes de enviar pro pynfe
+    Complementares = 1312.py 2624.total # versão .py das notas geradas pelo Leo, antes de enviar pro pynfe
 Dicts originais = 1313 # versão .py das notas originais geradas pelo Leo
 notagerada = 1312 # registro da nota gerada logo antes da request de autorização
 enviadas (envio[2] e envio[1]) = 405 # nota e recibo logo após a request da autorização
@@ -39,3 +39,7 @@ sabemos de 207 notas autorizadas
 agora vou verificar os recibos restantes
 depois vou ver qual última nota que gerou recibo, olhar a proxima e ver se ela existe
 se não, vou enviar dela pra frente
+
+das 1312 preparadas e assinadas no processo principal, 405 era sabido enviadas e não sabemos se autorizada ainda (rejieção consumo indevido)
+das 907 que não geraram recibo, apenas 1 de fato foi enviada e autorizada (35230446364058000115550020000460721635649658, nnf: 46072)
+906 não foram de fato autorizadas

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from pprint import pp
 try:
@@ -108,6 +108,7 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict) -> etree.Element:
         nfe_dict = nfe_dict['NFe']['infNFe']
 
     nfe_emit: dict = nfe_dict["emit"]
+
 
     _emitente = dict(
         cnae_fiscal=nfe_emit.get(mapEmitente("cnae_fiscal")),
@@ -240,6 +241,26 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict) -> etree.Element:
 
 
     )
+    # pega <nNF>n numeros</nNF<
+    nNF = nota['nNF']
+    # xml_str[
+    #     xml_str.find('<nNF>')+5:
+    #     xml_str.find('</nNF>')
+    # ]
+    
+    # 2023-04-13T09:50:04.699862: [WARNING] nota original 35221146364058000115550010000005331985263776 teve sua complementar associada à serie 3126
+    # na linha acima, nNF é 3126 e a chave é 35221146364058000115550010000005331985263776
+    with open('0_geral_2023-04-13T10:52:41.017441_NORMAL.log') as f:
+        conteudo = f.read()
+        index_chave = conteudo.find(nfe_referenciada['chave_acesso']+' teve sua complementar')
+        
+        posicao_nnf = index_chave + len("35221146364058000115550010000005331985263776 teve sua complementar associada à serie ")
+        posicao_nnf_end = posicao_nnf+conteudo[posicao_nnf:].find('\n')
+        
+        nnf = conteudo[posicao_nnf:posicao_nnf_end]
+        nNF = nnf
+
+    ontem = datetime.now() - timedelta(days=1)
 
     _nota_fiscal = dict(
         uf=CODIGOS_ESTADOS_T[nota['cUF']],
@@ -247,9 +268,9 @@ def converte_para_pynfe_XML_assinado(nfe_dict: dict) -> etree.Element:
         natureza_operacao=nota['natOp'],
         modelo=int(nota['mod']),
         serie=nota['serie'],
-        numero_nf=nota['nNF'],
-        data_emissao=datetime.now(),
-        data_saida_entrada=datetime.now(),
+        numero_nf=nNF,
+        data_emissao=ontem,
+        data_saida_entrada=ontem,
         tipo_documento=nota['tpNF'],
         indicador_destino=nota['idDest'],
         municipio=nota['cMunFG'],
@@ -317,8 +338,12 @@ def autorização(xml_assinado):
     if not IGNORA_HOMOLOGACAO_WARNING and not HOMOLOGACAO:
         input('ENVIO DE NOTA FISCAL EM PRODUÇÃO, CONTINUAR? (SIM)')
 
+    
+        
+    # __import__('ipdb').set_trace()
     try:
-        envio = con.autorizacao(modelo='nfe', nota_fiscal=xml_assinado)
+        ...
+        # envio = con.autorizacao(modelo='nfe', nota_fiscal=xml_assinado)
     except Exception as e:
         _salva_log('erro_autorizacao'+chave_de_acesso,str(e))
         raise
