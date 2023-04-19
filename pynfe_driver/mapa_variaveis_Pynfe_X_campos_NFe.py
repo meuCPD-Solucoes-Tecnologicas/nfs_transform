@@ -122,10 +122,7 @@ def NonnableDecimal(num):
     return num and Decimal(num)
 
 def mapProduto(nfe_dict:dict):
-    try:
-        nfe_produtos=nfe_dict['det']
-    except:
-        breakpoint()
+    nfe_produtos=nfe_dict['det']
 
     for prod in nfe_produtos:
         # IMPOSTOS
