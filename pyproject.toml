@@ -13,7 +13,8 @@ pytz = "^2023.3"
 xsd-validator = "^0.0.3"
 lxml = "^4.9.2"
 pyopenssl = "^23.1.1"
-pynfe = "^0.4.3"
+pynfe = "0.4.3"
+peewee = "^3.16.0"
 
 
 [tool.poetry.group.dev.dependencies]

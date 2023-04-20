@@ -16,11 +16,12 @@ limpeza:
 	rm -rf ./consultas/*
 
 limpeza-logs-and-zip:
+	cp -r consultas log;\
+	cp nNFE_atual.log log;\
 	zip -r $(FILENAME) $(PATH_ZIP);\
 	mv  $(FILENAME) $(TARGET_FOLDER);\
 	rm -r ./log/*
-	
-	
+
 
 limpeza-geral:
 	rm -rf ./NFS/Complementares/*
@@ -29,10 +30,10 @@ limpeza-geral:
 	rm -rf ./log/*
 	
 testa_consultas:
-	cp testa_consultadas.py consultas;\
+	?cp testa_consultadas.py consultas;\
 	cd consultas;\
 	python testa_consultadas.py;\
 	code falharam
 
 teste_sequencia:
-	python checa_seq_series.py
+?	python checa_seq_series.py
